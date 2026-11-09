@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="350" viewBox="0 0 960 350" role="img" aria-labelledby="title desc">
+<title id="title">git-panic: inspect, preview, preserve</title>
+<desc id="desc">Illustrative workflow, not application output. Browse HEAD reflogs, preview a full SHA on a new branch, then opt in to creation. No checkout or reset.</desc>
+<rect width="960" height="350" rx="16" fill="#101820"/>
+<g font-family="monospace" fill="#f4f7fa">
+<text x="32" y="48" font-size="30" font-weight="bold">git-panic</text>
+<text x="32" y="78" font-size="16" fill="#ffcc80">The CLI emergency room for your terminal.</text>
+<path d="M32 100 H928" stroke="#8ba1b4"/>
+<text x="32" y="132" font-size="17">1  INSPECT</text>
+<text x="220" y="132" font-size="17">git-panic tui</text>
+<text x="32" y="179" font-size="17">2  PREVIEW</text>
+<text x="220" y="179" font-size="17">git-panic recover &lt;SHA&gt; --branch panic/recovered</text>
+<text x="32" y="226" font-size="17">3  PRESERVE</text>
+<text x="220" y="226" font-size="17">Repeat the preview command with --create.</text>
+<text x="32" y="279" font-size="16" fill="#d4e3ed">New branch only. No checkout, reset, or working-file backup.</text>
+<text x="32" y="316" font-size="14" fill="#ffcc80">Illustrative workflow, not a screenshot. &lt;SHA&gt; is a placeholder.</text>
+</g>
+</svg>

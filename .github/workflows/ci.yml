@@ -1,0 +1,34 @@
+name: Rust checks
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Prepare stable Rust
+        run: |
+          rustup toolchain install stable --profile minimal --component clippy
+          rustup override set stable
+      - name: Tests in isolated temporary repositories
+        run: cargo test --all-targets
+      - name: Clippy
+        run: cargo clippy --all-targets -- -D warnings
+      - name: Release build
+        run: cargo build --release
+      - name: Inspect package contents
+        run: cargo package --list
