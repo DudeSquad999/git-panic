@@ -39,7 +39,10 @@ Put Cargo's binary directory on PATH (`~/.cargo/bin`, or
 `%USERPROFILE%\.cargo\bin` on Windows). Alternatively build with
 `cargo build --release` and use `target/release/git-panic` (`git-panic.exe` on Windows).
 The source uses IsTerminal (Rust 1.70+), but dependency requirements may be newer;
-no minimum supported version or registry publication is verified here.
+no minimum supported version or registry publication is verified here. This
+repository now ships a generated Cargo.lock, so use `--locked` for reproducible
+builds. Installation, tests and the tutorial below were verified on Linux with
+rustc 1.99.1; macOS and Windows checks run in CI but were not exercised locally.
 
 After installation, run the command inside the repository you want to inspect,
 not the git-panic source checkout. Another clone may lack the older local reflogs.
@@ -56,7 +59,8 @@ git-panic "commit: fix"   # quote a search fragment containing spaces
 Up/Down selects an entry; q or Ctrl-C exits. The inspector shows the full SHA,
 reflog position and action message. R is not a restoration shortcut. Search is
 case-insensitive literal matching, not AI interpretation or regex. No matches
-produces a message but still exits successfully. Use search in captured shell tools.
+produces a message but still exits successfully. Piping output to `head` or
+`grep -m` exits cleanly. Use search in captured shell tools.
 
 ## Preview, then preserve
 
@@ -91,8 +95,9 @@ human-readable CLI output is not a stable machine API.
 
 [AGENTS.md](AGENTS.md) guides assistants editing this project;
 [CLAUDE.md](CLAUDE.md) imports it for Claude Code. Installing git-panic does not
-install those instructions into your other projects. Assistant sessions and
-instruction loading have not been tested in the editing environment.
+install those instructions into your other projects. The documented noninteractive
+workflow was verified on Linux; loading these instruction files inside an actual
+assistant session remains unverified.
 
 ## Know the limits
 
