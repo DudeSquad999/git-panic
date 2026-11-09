@@ -1,14 +1,22 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1080" height="570" viewBox="0 0 1080 570" role="img" aria-labelledby="title desc">
-<title id="title">From panic to a preserved commit</title>
-<desc id="desc">Illustrative command guide, not application output. Inspect with git-panic tui. Preview recover with a full SHA and unused branch name. Repeat with --create only after review. No checkout, reset, or uncommitted-file backup.</desc>
-<rect width="1080" height="570" rx="20" fill="#0d1726"/>
-<g font-family="DejaVu Sans, sans-serif" fill="#f4f7fb">
-<text x="32" y="48" font-size="27" font-weight="bold">From panic to a preserved commit</text>
-<text x="32" y="80" font-size="17" fill="#d1deed">Illustrative command guide, not a screenshot or observed output.</text>
-<g fill="#17283c" stroke="#52657b"><rect x="32" y="108" width="1016" height="106" rx="12"/><rect x="32" y="232" width="1016" height="106" rx="12"/><rect x="32" y="356" width="1016" height="106" rx="12"/></g>
-<g font-size="21" font-weight="bold" fill="#ffb86b"><text x="54" y="142">01 / INSPECT</text><text x="54" y="266">02 / PREVIEW</text><text x="54" y="390">03 / PRESERVE</text></g>
-<g font-family="DejaVu Sans Mono, monospace" font-size="20" fill="#f4f7fb"><text x="54" y="181">git-panic tui</text><text x="54" y="305">git-panic recover &lt;SHA&gt; --branch panic/recovered</text><text x="54" y="429">Repeat the preview command with --create.</text></g>
-<text x="32" y="505" font-size="19">New branch only. No checkout, reset, or working-file backup.</text>
-<text x="32" y="540" font-size="17" fill="#d1deed">Replace &lt;SHA&gt; with a full 40-character commit ID. Use an unused branch name.</text>
+<title id="title">git-panic recovery workflow</title>
+<desc id="desc">Illustrative command guide in the original dark-grid and retro-terminal style. Inspect with git-panic tui, preview recover with a full SHA and unused branch name, then explicitly add --create. No checkout, reset, or working-file backup.</desc>
+<defs>
+<linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0d1117"/><stop offset="100%" stop-color="#161b22"/></linearGradient>
+<linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#f85149"/><stop offset="100%" stop-color="#ffa657"/></linearGradient>
+</defs>
+<rect width="1080" height="570" fill="url(#bg)"/>
+<path d="M0 114 H1080 M0 228 H1080 M0 342 H1080 M0 456 H1080 M216 0 V570 M432 0 V570 M648 0 V570 M864 0 V570" stroke="#21262d"/>
+<text x="32" y="52" font-family="system-ui, sans-serif" font-size="30" font-weight="bold" fill="url(#accent)">From panic to a preserved commit</text>
+<rect x="32" y="80" width="1016" height="430" rx="12" fill="#0d1117" stroke="#30363d" stroke-width="2"/>
+<rect x="32" y="80" width="1016" height="40" rx="12" fill="#161b22"/>
+<circle cx="58" cy="100" r="6" fill="#ff5f56"/><circle cx="78" cy="100" r="6" fill="#ffbd2e"/><circle cx="98" cy="100" r="6" fill="#27c93f"/>
+<g font-family="monospace">
+<text x="540" y="106" text-anchor="middle" font-size="15" fill="#c9d1d9">Illustrative command guide / not application output</text>
+<g font-size="18" fill="#ffa657"><text x="56" y="160">01 / INSPECT</text><text x="56" y="270">02 / PREVIEW</text><text x="56" y="380">03 / PRESERVE</text></g>
+<g font-size="20" fill="#58a6ff"><text x="56" y="195">$ git-panic tui</text><text x="56" y="305">$ git-panic recover &lt;SHA&gt; --branch panic/recovered</text></g>
+<text x="56" y="415" font-size="20" fill="#e6edf3">Repeat the preview command with --create after review.</text>
+<text x="56" y="470" font-size="17" fill="#c9d1d9">New branch only. No checkout, reset, or working-file backup.</text>
 </g>
+<text x="32" y="548" font-family="system-ui, sans-serif" font-size="17" fill="#c9d1d9">Replace &lt;SHA&gt; with a full 40-character commit ID. Choose an unused branch name.</text>
 </svg>

@@ -1,4 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" width="1280" height="640">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" width="1280" height="640" role="img" aria-labelledby="title desc">
+  <title id="title">git-panic: The CLI Emergency Room</title>
+  <desc id="desc">Original dark-grid banner with a red-orange title and retro terminal window. Illustrative guide: inspect HEAD reflogs, preview a commit, then explicitly create a branch. Not application output.</desc>
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#0d1117"/>
@@ -18,20 +20,20 @@
     <circle cx="30" cy="20" r="6" fill="#ff5f56"/>
     <circle cx="50" cy="20" r="6" fill="#ffbd2e"/>
     <circle cx="70" cy="20" r="6" fill="#27c93f"/>
-    <text x="260" y="25" fill="#8b949e" font-family="monospace" font-size="14" text-anchor="middle">git-panic - v0.1.0</text>
-    <text x="30" y="80" fill="#58a6ff" font-family="monospace" font-size="16">$ git panic "deleted main branch"</text>
-    <text x="30" y="120" fill="#8b949e" font-family="monospace" font-size="14">[+] Scanning .git/logs/reflog...</text>
-    <text x="30" y="150" fill="#7ee787" font-family="monospace" font-size="14">[✓] Found HEAD@{4}: commit: fix auth bug</text>
-    <text x="30" y="190" fill="#58a6ff" font-family="monospace" font-size="16">$ git-panic --tui</text>
-    <text x="30" y="230" fill="#e6edf3" font-family="monospace" font-size="14">┌─ 🚨 Git-Panic Timeline ────────┐</text>
-    <text x="30" y="260" fill="#ffa657" font-family="monospace" font-size="14">> HEAD@{0} [a8f9c21] wip work</text>
-    <text x="30" y="290" fill="#e6edf3" font-family="monospace" font-size="14">  HEAD@{1} [7b3e10a] feat: login UI</text>
-    <text x="30" y="320" fill="#e6edf3" font-family="monospace" font-size="14">  HEAD@{2} [4e2d89f] reset --hard</text>
-    <text x="30" y="360" fill="#8b949e" font-family="monospace" font-size="13">Press 'R' to restore • Press 'q' to quit</text>
+    <text x="260" y="25" fill="#c9d1d9" font-family="monospace" font-size="14" text-anchor="middle">Illustrative command guide</text>
+    <text x="30" y="80" fill="#58a6ff" font-family="monospace" font-size="18">$ git-panic tui</text>
+    <text x="30" y="115" fill="#c9d1d9" font-family="monospace" font-size="16">Inspect the local HEAD reflog.</text>
+    <text x="30" y="145" fill="#c9d1d9" font-family="monospace" font-size="16">Copy a full SHA; press q to quit.</text>
+    <text x="30" y="195" fill="#58a6ff" font-family="monospace" font-size="16">$ git-panic recover &lt;SHA&gt; \</text>
+    <text x="30" y="222" fill="#58a6ff" font-family="monospace" font-size="16">    --branch panic/recovered</text>
+    <text x="30" y="260" fill="#7ee787" font-family="monospace" font-size="16">Preview only. No branch is created.</text>
+    <text x="30" y="300" fill="#ffa657" font-family="monospace" font-size="16">Add --create after reviewing.</text>
+    <text x="30" y="340" fill="#c9d1d9" font-family="monospace" font-size="15">No checkout. No reset. No file backup.</text>
+    <text x="30" y="392" fill="#c9d1d9" font-family="monospace" font-size="13">Illustration, not application output.</text>
   </g>
-  <text x="100" y="240" fill="url(#accent)" font-family="system-ui, -apple-system, sans-serif" font-size="64" font-weight="900">git-panic</text>
-  <text x="100" y="310" fill="#e6edf3" font-family="system-ui, -apple-system, sans-serif" font-size="28" font-weight="600">The CLI Emergency Room</text>
-  <text x="100" y="355" fill="#8b949e" font-family="system-ui, -apple-system, sans-serif" font-size="18">Scrub back in time &amp; restore wiped code instantly.</text>
+  <text x="100" y="240" fill="url(#accent)" font-family="system-ui, sans-serif" font-size="64" font-weight="900">git-panic</text>
+  <text x="100" y="310" fill="#e6edf3" font-family="system-ui, sans-serif" font-size="28" font-weight="600">The CLI Emergency Room</text>
+  <text x="100" y="355" fill="#c9d1d9" font-family="system-ui, sans-serif" font-size="18">Inspect local history. Preserve a commit.</text>
   <rect x="100" y="410" width="180" height="36" rx="6" fill="#21262d" stroke="#30363d" stroke-width="1"/>
   <text x="190" y="433" fill="#c9d1d9" font-family="monospace" font-size="13" font-weight="bold" text-anchor="middle">Prism-AI Origin</text>
 </svg>
