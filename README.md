@@ -1,6 +1,9 @@
 # git-panic
 
-![git-panic: the CLI emergency room for your terminal. Inspect local history, preview a commit, and preserve it on a new branch.](assets/readme/banner.svg)
+![git-panic: the CLI emergency room for your terminal. Inspect local history, preview a commit, and preserve it on a new branch.](assets/banner.svg)
+
+Banner artwork is illustrative, not a screenshot. Command examples match the
+documented workflow.
 
 Find the commit. Keep your cool. Decide what happens next.
 
