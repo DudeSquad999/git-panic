@@ -17,7 +17,7 @@ use std::{io, path::PathBuf};
 #[derive(Parser)]
 #[command(
     name = "git-panic",
-    author = "Git-Panic Contributors",
+    author = "DudeSquad999",
     version = "0.1.0",
     about = "Visual Git Reflog Time Machine & Disaster Recovery CLI",
     long_about = "Scrub back in time, inspect visual diffs, and safely recover lost work from reflogs."
@@ -51,7 +51,6 @@ pub struct ReflogItem {
 fn main() -> Result<()> {
     let cli = Cli::parse();
 
-    // Verify current directory is inside a valid git repository
     let repo_path = PathBuf::from(".");
     let repo = Repository::discover(&repo_path)
         .context("Failed to locate git repository. Are you in a valid git directory?")?;

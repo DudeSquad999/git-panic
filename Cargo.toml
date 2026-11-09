@@ -2,11 +2,11 @@
 name = "git-panic"
 version = "0.1.0"
 edition = "2021"
-authors = ["Git-Panic Contributors"]
+authors = ["DudeSquad999 <dudesquad999@users.noreply.github.com>"]
 description = "Visual Git Reflog Time Machine & Disaster Recovery CLI"
 license = "MIT"
 readme = "README.md"
-repository = "https://github.com/your-org/git-panic"
+repository = "https://github.com/DudeSquad999/git-panic"
 keywords = ["git", "cli", "tui", "recovery", "devtools"]
 categories = ["command-line-utilities", "development-tools"]
 

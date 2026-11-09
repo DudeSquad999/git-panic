@@ -32,6 +32,6 @@
   <text x="100" y="240" fill="url(#accent)" font-family="system-ui, -apple-system, sans-serif" font-size="64" font-weight="900">git-panic</text>
   <text x="100" y="310" fill="#e6edf3" font-family="system-ui, -apple-system, sans-serif" font-size="28" font-weight="600">The CLI Emergency Room</text>
   <text x="100" y="355" fill="#8b949e" font-family="system-ui, -apple-system, sans-serif" font-size="18">Scrub back in time &amp; restore wiped code instantly.</text>
-  <rect x="100" y="410" width="160" height="36" rx="6" fill="#21262d" stroke="#30363d" stroke-width="1"/>
-  <text x="180" y="433" fill="#c9d1d9" font-family="monospace" font-size="14" font-weight="bold" text-anchor="middle">v0.1.0 • Rust</text>
+  <rect x="100" y="410" width="180" height="36" rx="6" fill="#21262d" stroke="#30363d" stroke-width="1"/>
+  <text x="190" y="433" fill="#c9d1d9" font-family="monospace" font-size="13" font-weight="bold" text-anchor="middle">Prism-AI Origin</text>
 </svg>
