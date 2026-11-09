@@ -8,8 +8,9 @@ AI integration or configure other repositories.
 - Rust 2021 Cargo binary. Main implementation and unit tests: src/main.rs.
 - Read README.md, docs/guide.md, CONTRIBUTING.md, and Cargo.toml before changes.
 - Keep the existing small architecture; add dependencies only for a concrete need.
-- Check with cargo fmt --all -- --check, cargo test --all-targets,
-  cargo clippy --all-targets -- -D warnings, and cargo build --release.
+- Cargo.lock is committed; preserve it and use `--locked` when reproducing builds.
+- Check with cargo fmt --all -- --check, cargo test --all-targets --locked,
+  cargo clippy --all-targets -- -D warnings, and cargo build --release --locked.
 - Run cargo fmt --all when formatting changes are needed. Use cargo package --list
   to inspect packaging. Report exact results and unavailable checks, never guessed passes.
 

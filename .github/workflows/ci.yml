@@ -22,13 +22,15 @@ jobs:
           persist-credentials: false
       - name: Prepare stable Rust
         run: |
-          rustup toolchain install stable --profile minimal --component clippy
+          rustup toolchain install stable --profile minimal --component clippy,rustfmt
           rustup override set stable
+      - name: Formatting
+        run: cargo fmt --all -- --check
       - name: Tests in isolated temporary repositories
-        run: cargo test --all-targets
+        run: cargo test --all-targets --locked
       - name: Clippy
-        run: cargo clippy --all-targets -- -D warnings
+        run: cargo clippy --all-targets --locked -- -D warnings
       - name: Release build
-        run: cargo build --release
+        run: cargo build --release --locked
       - name: Inspect package contents
         run: cargo package --list

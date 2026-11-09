@@ -13,10 +13,15 @@ use ratatui::{
     widgets::{Block, Borders, List, ListItem, ListState, Paragraph, Wrap},
     Terminal,
 };
-use std::io::{self, IsTerminal};
+use std::io::{self, IsTerminal, Write};
 
 #[derive(Parser)]
-#[command(name = "git-panic", author, version, about = "Inspect local Git reflogs and preserve commits on new branches")]
+#[command(
+    name = "git-panic",
+    author,
+    version,
+    about = "Inspect local Git reflogs and preserve commits on new branches"
+)]
 struct Cli {
     /// Case-insensitive literal substring to find in HEAD reflog messages
     query: Option<String>,
@@ -58,11 +63,19 @@ fn main() -> Result<()> {
         bail!("Use a search query OR a subcommand, not both.");
     }
     if let Some(Commands::Snapshot { before }) = &cli.command {
-        bail!("snapshot --before {:?} is not implemented. Use a literal search or the TUI.", before);
+        bail!(
+            "snapshot --before {:?} is not implemented. Use a literal search or the TUI.",
+            before
+        );
     }
     let repo = Repository::discover(".")
         .context("No Git repository found. Run git-panic inside your repository.")?;
-    if let Some(Commands::Recover { oid, branch, create }) = &cli.command {
+    if let Some(Commands::Recover {
+        oid,
+        branch,
+        create,
+    }) = &cli.command
+    {
         return recover(&repo, oid, branch, *create);
     }
     let reflogs = extract_reflogs(&repo)?;
@@ -72,11 +85,11 @@ fn main() -> Result<()> {
         }
         let matches = filter_reflog(&reflogs, &query);
         if matches.is_empty() {
-            println!("No matching HEAD reflog entries. Try a shorter literal fragment such as reset.");
+            println!(
+                "No matching HEAD reflog entries. Try a shorter literal fragment such as reset."
+            );
         } else {
-            for item in matches {
-                println!("HEAD@{{{}}} {} - {}", item.index, item.oid, display_text(&item.message));
-            }
+            print_matches(&matches)?;
         }
         return Ok(());
     }
@@ -89,20 +102,52 @@ fn extract_reflogs(repo: &Repository) -> Result<Vec<ReflogItem>> {
         Err(error) if error.code() == git2::ErrorCode::NotFound => return Ok(Vec::new()),
         Err(error) => return Err(error).context("Could not read the local HEAD reflog"),
     };
-    Ok(reflog.iter().enumerate().map(|(index, entry)| ReflogItem {
-        oid: entry.id_new(),
-        message: entry.message().unwrap_or("No reflog message").to_string(),
-        index,
-    }).collect())
+    Ok(reflog
+        .iter()
+        .enumerate()
+        .map(|(index, entry)| ReflogItem {
+            oid: entry.id_new(),
+            message: entry.message().unwrap_or("No reflog message").to_string(),
+            index,
+        })
+        .collect())
 }
 
 fn filter_reflog(reflogs: &[ReflogItem], query: &str) -> Vec<ReflogItem> {
     let query = query.to_lowercase();
-    reflogs.iter().filter(|item| item.message.to_lowercase().contains(&query)).cloned().collect()
+    reflogs
+        .iter()
+        .filter(|item| item.message.to_lowercase().contains(&query))
+        .cloned()
+        .collect()
 }
 
 fn display_text(text: &str) -> String {
-    text.chars().map(|c| if c.is_control() { ' ' } else { c }).collect()
+    text.chars()
+        .map(|c| if c.is_control() { ' ' } else { c })
+        .collect()
+}
+
+// `git-panic QUERY | head -n` closes stdout early. With the release
+// panic=abort profile, an unhandled BrokenPipe from println! otherwise
+// terminates with SIGABRT (exit 134) after the consumer already succeeded.
+// `head`'s own exit code (0) is what matters, so exit quietly on SIGPIPE.
+fn print_matches(matches: &[ReflogItem]) -> Result<()> {
+    let mut out = io::stdout();
+    for item in matches {
+        let line = format!(
+            "HEAD@{{{}}} {} - {}",
+            item.index,
+            item.oid,
+            display_text(&item.message)
+        );
+        if out.write_all(line.as_bytes()).is_err() || out.write_all(b"\n").is_err() {
+            // Consumer closed the pipe; treat this as a normal stop.
+            return Ok(());
+        }
+    }
+    out.flush()?;
+    Ok(())
 }
 
 // Best-effort cleanup on ordinary returns/errors, including partial setup.
@@ -178,12 +223,15 @@ fn recovery_target<'a>(repo: &'a Repository, oid: &str, branch: &str) -> Result<
         bail!("Invalid branch name. Example: panic/recovered");
     }
     match repo.find_reference(&reference) {
-        Ok(_) => bail!("Branch already exists; choose a new name. Existing branches are never overwritten."),
+        Ok(_) => bail!(
+            "Branch already exists; choose a new name. Existing branches are never overwritten."
+        ),
         Err(error) if error.code() == git2::ErrorCode::NotFound => {}
         Err(error) => return Err(error).context("Could not inspect the requested branch"),
     }
-    repo.find_commit(Oid::from_str(oid)?)
-        .context("Commit is unavailable locally or the object is not a commit. It may have been pruned.")
+    repo.find_commit(Oid::from_str(oid)?).context(
+        "Commit is unavailable locally or the object is not a commit. It may have been pruned.",
+    )
 }
 
 fn recover(repo: &Repository, oid: &str, branch: &str, create: bool) -> Result<()> {
@@ -197,7 +245,10 @@ fn recover(repo: &Repository, oid: &str, branch: &str, create: bool) -> Result<(
     }
     repo.branch(branch, &commit, false)
         .context("Could not create the recovery branch; existing branches are never overwritten")?;
-    println!("Created branch {}. No checkout performed.", display_text(branch));
+    println!(
+        "Created branch {}. No checkout performed.",
+        display_text(branch)
+    );
     Ok(())
 }
 
@@ -214,21 +265,32 @@ mod tests {
     }
     impl Fixture {
         fn new() -> Self {
-            let path = std::env::temp_dir().join(format!("git-panic-test-{}-{}-{}",
+            let path = std::env::temp_dir().join(format!(
+                "git-panic-test-{}-{}-{}",
                 std::process::id(),
-                std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos(),
-                NEXT.fetch_add(1, Ordering::Relaxed)));
+                std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap()
+                    .as_nanos(),
+                NEXT.fetch_add(1, Ordering::Relaxed)
+            ));
             std::fs::create_dir(&path).unwrap();
             let repo = Repository::init(&path).unwrap();
-            Self { repo: Some(repo), path }
+            Self {
+                repo: Some(repo),
+                path,
+            }
         }
-        fn repo(&self) -> &Repository { self.repo.as_ref().unwrap() }
+        fn repo(&self) -> &Repository {
+            self.repo.as_ref().unwrap()
+        }
         fn commit(&self) -> Oid {
             let repo = self.repo();
             let tree_id = repo.index().unwrap().write_tree().unwrap();
             let tree = repo.find_tree(tree_id).unwrap();
             let signature = git2::Signature::now("Test", "test@example.invalid").unwrap();
-            repo.commit(Some("HEAD"), &signature, &signature, "fixture", &tree, &[]).unwrap()
+            repo.commit(Some("HEAD"), &signature, &signature, "fixture", &tree, &[])
+                .unwrap()
         }
     }
     impl Drop for Fixture {
@@ -244,23 +306,44 @@ mod tests {
     }
     #[test]
     fn cli_preserves_existing_entry_points() {
-        for args in [vec!["git-panic"], vec!["git-panic", "tui"], vec!["git-panic", "reset"],
-            vec!["git-panic", "snapshot", "--before", "yesterday"]] {
+        for args in [
+            vec!["git-panic"],
+            vec!["git-panic", "tui"],
+            vec!["git-panic", "reset"],
+            vec!["git-panic", "snapshot", "--before", "yesterday"],
+        ] {
             assert!(Cli::try_parse_from(args).is_ok());
         }
     }
     #[test]
     fn recovery_requires_branch_and_defaults_to_preview() {
         assert!(Cli::try_parse_from(["git-panic", "recover", "abc"]).is_err());
-        let cli = Cli::try_parse_from(["git-panic", "recover", "abc", "--branch", "panic/test"]).unwrap();
-        assert!(matches!(cli.command, Some(Commands::Recover { create: false, .. })));
+        let cli =
+            Cli::try_parse_from(["git-panic", "recover", "abc", "--branch", "panic/test"]).unwrap();
+        assert!(matches!(
+            cli.command,
+            Some(Commands::Recover { create: false, .. })
+        ));
     }
     #[test]
     fn search_is_literal_and_case_insensitive() {
-        let items = vec![ReflogItem { oid: Oid::zero(), index: 0, message: "reset: moving to HEAD~1".into() }];
+        let items = vec![ReflogItem {
+            oid: Oid::zero(),
+            index: 0,
+            message: "reset: moving to HEAD~1".into(),
+        }];
         assert_eq!(filter_reflog(&items, "RESET").len(), 1);
         assert!(filter_reflog(&items, "I accidentally reset").is_empty());
         assert!(filter_reflog(&items, ".*").is_empty());
+    }
+    #[test]
+    fn broken_pipe_search_exits_quietly() {
+        let items = vec![ReflogItem {
+            oid: Oid::zero(),
+            index: 0,
+            message: "reset".into(),
+        }];
+        print_matches(&items).unwrap();
     }
     #[test]
     fn terminal_controls_are_not_displayed() {
@@ -286,7 +369,10 @@ mod tests {
         let fixture = Fixture::new();
         let oid = fixture.commit();
         recover(fixture.repo(), &oid.to_string(), "panic/preview", false).unwrap();
-        assert!(fixture.repo().find_reference("refs/heads/panic/preview").is_err());
+        assert!(fixture
+            .repo()
+            .find_reference("refs/heads/panic/preview")
+            .is_err());
     }
     #[test]
     fn creation_preserves_detached_head_index_and_working_files() {
@@ -302,12 +388,23 @@ mod tests {
         std::fs::write(fixture.path.join("untracked.txt"), "untracked").unwrap();
         let before = std::fs::read(repo.path().join("index")).unwrap();
         recover(repo, &oid.to_string(), "panic/recovered", true).unwrap();
-        assert_eq!(repo.find_reference("refs/heads/panic/recovered").unwrap().target(), Some(oid));
+        assert_eq!(
+            repo.find_reference("refs/heads/panic/recovered")
+                .unwrap()
+                .target(),
+            Some(oid)
+        );
         assert!(repo.head_detached().unwrap());
         assert_eq!(repo.head().unwrap().target(), Some(oid));
         assert_eq!(std::fs::read(repo.path().join("index")).unwrap(), before);
-        assert_eq!(std::fs::read_to_string(fixture.path.join("staged.txt")).unwrap(), "unstaged");
-        assert_eq!(std::fs::read_to_string(fixture.path.join("untracked.txt")).unwrap(), "untracked");
+        assert_eq!(
+            std::fs::read_to_string(fixture.path.join("staged.txt")).unwrap(),
+            "unstaged"
+        );
+        assert_eq!(
+            std::fs::read_to_string(fixture.path.join("untracked.txt")).unwrap(),
+            "untracked"
+        );
     }
     #[test]
     fn never_overwrites_existing_branch() {
@@ -315,7 +412,14 @@ mod tests {
         let oid = fixture.commit();
         recover(fixture.repo(), &oid.to_string(), "panic/existing", true).unwrap();
         assert!(recover(fixture.repo(), &oid.to_string(), "panic/existing", true).is_err());
-        assert_eq!(fixture.repo().find_reference("refs/heads/panic/existing").unwrap().target(), Some(oid));
+        assert_eq!(
+            fixture
+                .repo()
+                .find_reference("refs/heads/panic/existing")
+                .unwrap()
+                .target(),
+            Some(oid)
+        );
     }
     #[test]
     fn rejects_moving_refs_invalid_names_and_missing_objects() {

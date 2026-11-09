@@ -77,8 +77,9 @@ cat notes.txt
 If the commands succeed, `git show` should display the first version while `cat`
 still displays the second. That demonstrates branch preservation without file
 restoration. This is an instructional example, not captured git-panic output.
-The Git-only fixture was checked locally; the full application exercise still
-needs execution on a Rust-equipped machine. The temporary directory is left intact.
+The complete exercise was executed end-to-end on Linux with rustc 1.99.1 in an
+isolated temporary repository during this repository's validation pass. The
+temporary directory is left intact.
 
 For native PowerShell, use the normal workflow in an existing repository:
 
@@ -139,7 +140,10 @@ Claude Code documents project instruction files and @-imports in its
 [official memory guide](https://code.claude.com/docs/en/memory). Verify loading in
 your installed assistant; do not assume all tools recognize the same file format.
 For other agents, explicitly ask them to read the relevant guidance if needed.
-Instruction loading and end-to-end assistant sessions have not been tested here.
+The noninteractive search, inspection, preview and exit-status behavior in this
+guide was exercised on Linux with rustc 1.99.1 in this repository's validation
+pass. Loading these instruction files inside an actual Claude Code or other
+assistant session remains unverified.
 
 ### Privacy matters
 
@@ -158,6 +162,7 @@ prompts, screenshots, issue reports, or recovery examples.
 | HEAD is detached | Inspect the full SHA and preview naming a commit. | Creating a branch switches you onto it. |
 | Merge/rebase/cherry-pick is interrupted | Inspect status, preserve work separately, and stop before additional Git actions. | A recovery branch backs up conflicts or finishes the operation. |
 | Only uncommitted edits disappeared | Check your editor's local history or existing backups separately. | A reflog records every edit. |
+| Piping search output to `head` or `grep -m` | Works normally; output stops when the reader stops. | Older builds could abort with exit 134 on a closed pipe. |
 
 ## When something fails
 
