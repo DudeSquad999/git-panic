@@ -1,4 +1,4 @@
-# 🚨 git-panic
+[# 🚨 git-panic
 
 > **The CLI emergency room for your terminal.**  
 > *Scrub back in time, inspect visual diffs, and restore wiped code from dirty reflogs, stashes, and detached HEADs—100% offline, zero data sent to the cloud.*
@@ -55,3 +55,4 @@ git clone https://github.com/your-org/git-panic.git
 cd git-panic
 cargo run
 ```
+](https://github.com/DudeSquad999/Prism-Ai/tree/Main)
