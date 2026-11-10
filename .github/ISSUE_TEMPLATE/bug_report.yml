@@ -1,0 +1,43 @@
+---
+name: Bug report
+about: git-panic behaved incorrectly, crashed, or gave a misleading result
+title: ''
+labels: bug
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What you ran, what you expected, and what you saw instead. Use a disposable practice repository for anything risky; do not paste secrets, private paths, or private history.
+      placeholder: |
+        Command: git-panic recover <SHA> --branch panic/x
+        Expected: ...
+        Actual: ...
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: How can it be reproduced?
+      description: The exact steps, from a fresh `git init` if possible. Never test destructive Git operations in a real project.
+      placeholder: |
+        mkdir demo && cd demo && git init ...
+  - type: input
+    id: version
+    attributes:
+      label: git-panic version
+      description: Output of `git-panic --version`.
+      placeholder: git-panic 0.1.0
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Operating system, terminal, and Rust version if built from source.
+      placeholder: Ubuntu 24.04, GNOME Terminal, rustc 1.99
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Reporting checklist
+      options:
+        - label: This report contains no secrets, credentials, or private repository data.
+          required: true

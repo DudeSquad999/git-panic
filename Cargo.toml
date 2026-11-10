@@ -12,10 +12,15 @@ categories = ["command-line-utilities", "development-tools"]
 
 [dependencies]
 clap = { version = "4.4", features = ["derive"] }
-git2 = "0.20"
+# No SSH/HTTPS support is needed: git-panic only reads local repositories
+# and never performs network or remote operations. Disabling git2's default
+# features also removes the openssl-sys/libssh2-sys build requirements.
+git2 = { version = "0.20", default-features = false }
 ratatui = "0.26"
 crossterm = "0.27"
 anyhow = "1.0"
+# Used only for the documented --json output of search and recover
+serde_json = "1.0"
 
 [profile.release]
 opt-level = 3
