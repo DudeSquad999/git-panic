@@ -4,19 +4,25 @@
 
 Find an earlier commit. Give it a branch. Decide what happens next.
 
-A local Git recovery CLI written in Rust. Inspect your HEAD reflog, find an earlier commit, and preserve it on a new branch without switching branches or changing working files.
+I'm Aidan, the creator of git-panic and [Prism AI](https://github.com/DudeSquad999/Prism-Ai). I started this project after dealing with Git recovery while building Prism. git-panic is a local Git recovery CLI written in Rust: it helps you find an earlier commit and preserve it on a new branch without switching branches or changing working files.
 
-[Install](#installation) · [Quick start](#quick-start) · [Commands](#command-reference) · [Beginner guide](docs/guide.md) · [Architecture](#architecture) · [Contributing](CONTRIBUTING.md)
+[Install](#installation) · [Quick start](#quick-start) · [Commands](#command-reference) · [Beginner guide](docs/guide.md) · [Architecture](#architecture) · [About Prism AI](#my-other-project-prism-ai)
+
+## Why I built it
+
+Git recovery can be confusing when you're trying to figure out what happened to your work. I built git-panic around a small workflow: inspect the history, review a commit, and explicitly choose whether to give it a new branch.
+
+After a reset or rebase, a commit may still exist locally even when your branch no longer points to it. Git's HEAD reflog records where your current Git position has moved. git-panic makes those entries easier to browse and search.
+
+I want to be clear about what it does: this is not an automatic undo button. It preserves existing commits, not edits Git never saved. A recovery branch does not restore working files or back up uncommitted work.
 
 ## See it in action
 
 ![Recorded session: search for a commit after a hard reset, preview recovery, and create a branch without changing the working file.](assets/demo-terminal.svg)
 
-Captured by [scripts/render-demo.sh](scripts/render-demo.sh) in a disposable practice repository. Commands are blue; output is white.
+This session was captured with [scripts/render-demo.sh](scripts/render-demo.sh) in a disposable practice repository. Commands are blue; output is white. The banner at the top is artwork, not a screenshot.
 
-## Why git-panic?
-
-After a confusing reset or rebase, a commit may still exist locally even when your branch no longer points to it. Git's HEAD reflog records where your current Git position has moved. git-panic helps you inspect those entries and give an existing commit a new branch name.
+## What it does
 
 | Feature | What you get |
 | :--- | :--- |
@@ -26,8 +32,6 @@ After a confusing reset or rebase, a commit may still exist locally even when yo
 | Explicit branch creation | Add `--create` only after reviewing the target. Existing branches are never overwritten. |
 | JSON output | Use search and recovery from scripts or shell-capable coding assistants. |
 | Local Git operations | No checkout, reset, clean, stash, or remote operations. |
-
-This is not an automatic undo button. It preserves existing commits, not edits Git never saved. A recovery branch does not restore working files or back up uncommitted work.
 
 ## Installation
 
@@ -49,7 +53,7 @@ Make sure Cargo's binary directory is on PATH:
 
 Alternatively, run `cargo build --release --locked` and use `target/release/git-panic` (`git-panic.exe` on Windows).
 
-The repository includes `Cargo.lock`; `--locked` uses the locked dependency resolution. The source uses `IsTerminal` from Rust 1.70+, but dependencies may require a newer compiler. No minimum supported Rust version or registry publication is verified here.
+The repository includes `Cargo.lock`; `--locked` uses the locked dependency resolution. The source uses `IsTerminal` from Rust 1.70+, but dependencies may require a newer compiler. I haven't established a minimum supported Rust version or verified a registry publication.
 
 The previous documented installation and tutorial checks used Linux with rustc 1.99.1. macOS and Windows checks are configured in CI, but were not exercised in that local validation. Builds may need internet access.
 
@@ -69,7 +73,7 @@ Search is literal and case-insensitive. It does not interpret natural language o
 
 ### 2. Preview preservation
 
-The following example uses a POSIX shell. Replace the placeholder with an actual commit SHA and choose an unused branch name.
+This example uses a POSIX shell. Replace the placeholder with an actual commit SHA and choose an unused branch name.
 
 ```sh
 SHA='<paste-full-40-character-commit-SHA>'
@@ -88,7 +92,7 @@ git-panic recover "$SHA" --branch panic/recovered --create
 
 Only the new branch reference is created. HEAD, the index, and working files stay unchanged. Inspecting or integrating files from that branch is a separate decision.
 
-New to recovery? Use the [disposable practice exercise](docs/guide.md#practice-without-risking-your-project) before trying this on an important repository. The [full guide](docs/guide.md) includes PowerShell examples.
+If you're new to recovery, I recommend starting with the [disposable practice exercise](docs/guide.md#practice-without-risking-your-project). The [full guide](docs/guide.md) includes PowerShell examples.
 
 ## Command reference
 
@@ -119,7 +123,7 @@ The inspector shows the full SHA, reflog position, and action message. It is rea
 
 ## Scripts and coding assistants
 
-Use the installed CLI through an assistant's shell tool. No plugin, MCP server, model key, or permission bypass is supplied by git-panic.
+You can use the installed CLI through an assistant's shell tool. I haven't packaged git-panic as a plugin or MCP server. It doesn't need a model key or bypass permission prompts.
 
 ```sh
 git-panic --json reset
@@ -135,11 +139,13 @@ Search JSON includes `tool`, `query`, `match_count`, and `matches`. Each match c
 - Confirm the repository and target commit, review the preview, and ask for human approval before adding `--create`.
 - Review what shell output a cloud-backed assistant sends to its provider. A local CLI does not make the assistant session offline.
 
-See the [AI-assistant guide and copy-paste task](docs/guide.md#use-with-claude-code-or-another-shell-capable-coding-assistant). Do not parse the default human-readable output in unattended tools.
+I've included an [AI-assistant guide and copy-paste task](docs/guide.md#use-with-claude-code-or-another-shell-capable-coding-assistant). Don't parse the default human-readable output in unattended tools.
 
 [AGENTS.md](AGENTS.md) guides assistants editing this project; [CLAUDE.md](CLAUDE.md) imports it for Claude Code. Installing git-panic does not install those instructions into other repositories. The documented noninteractive workflow was previously verified on Linux; instruction-file loading in an actual assistant session remains unverified.
 
 ## Safety and limitations
+
+I keep the recovery behavior narrow. Please read these limits before relying on the tool:
 
 - Only the local HEAD reflog is searched. There is no stash scanning, other branches' reflog scanning, dangling-object search, or visual diff view.
 - Unstored edits, expired reflogs, and pruned objects may be unrecoverable.
@@ -150,7 +156,7 @@ See the [AI-assistant guide and copy-paste task](docs/guide.md#use-with-claude-c
 
 ![Illustrative workflow: inspect a commit, preview its SHA and an unused branch, then explicitly create the branch.](assets/readme/workflow.svg)
 
-This workflow image is a command guide, not captured output. The recorded terminal session appears near the top of this README.
+This image is a command guide, not captured output. The recorded terminal session appears near the top of this README.
 
 ## Troubleshooting
 
@@ -165,7 +171,7 @@ This workflow image is a command guide, not captured output. The recorded termin
 | TUI needs an interactive terminal | Use literal search or JSON in captured or redirected tools. |
 | Terminal looks wrong after a forced stop | On POSIX systems, try `stty sane`, then `reset`. |
 
-Read the [troubleshooting guide](docs/guide.md#when-something-fails) for more detail.
+See the [troubleshooting guide](docs/guide.md#when-something-fails) for more detail.
 
 ## Architecture
 
@@ -236,18 +242,35 @@ class node_developer toneIndigo
 
 Generated with [GitDiagram](https://gitdiagram.com/dudesquad999/git-panic).
 
-## Contributing and security
+## My other project: Prism AI
 
-Read [CONTRIBUTING.md](CONTRIBUTING.md) for development checks and validation guidance. See [SECURITY.md](SECURITY.md) for the project's security policy.
+[Prism AI](https://github.com/DudeSquad999/Prism-Ai) is my Windows research and writing workspace. I'm building it to make the path from a research question to a finished document easier to manage, with a choice of local or cloud AI and review of AI-proposed edits.
 
-For bugs and ideas, [open an issue](https://github.com/DudeSquad999/git-panic/issues) with the command, version, and behavior you observed. Remove credentials, private paths, and sensitive repository content before sharing logs.
+It has two companion applications:
 
-No blanket installation, security-audit, release-readiness, or AI compatibility guarantee is made.
+| Application | What it's for |
+| :--- | :--- |
+| Prism Chat | Organizing research projects, conversations, source material, and Markdown notes. |
+| Prism Studio | Writing LaTeX papers and presentations, managing BibTeX references, and compiling PDFs with Tectonic. |
 
-## Background
+You can use local models through Ollama or configure your own API key for Google Gemini, Anthropic, or OpenAI. Chat and Studio need to be configured separately. Local inference runs on your computer after setup, but not every feature works offline. Content included in cloud requests goes to your configured provider.
 
-The project grew out of the maintainer's recovery experience while building [Prism AI](https://github.com/DudeSquad999/Prism-Ai).
+There's also a [browser workspace](https://dudesquad999.github.io/Prism-Ai/) you can explore without installing the Windows apps. It supports projects, conversations, Markdown drafts, tasks, Perspectives, and project import and export. You can connect it to Ollama running on your computer for live chat. Without Ollama, Chat uses labeled sample responses. It doesn't include live web search, citation verification, or document uploads, and it doesn't replace the Windows applications.
+
+Prism is still early-stage software. Check important AI-generated claims and citations, review proposed edits, and keep backups of important work. The public repository contains the browser workspace, documentation, automation, and project records; it does not currently include the complete source for the packaged Windows applications.
+
+Building Prism is what led me to git-panic. They're separate projects: Prism helps with research and writing, while git-panic helps preserve existing Git commits when development gets messy. You don't need Prism to use git-panic, and git-panic isn't a Prism plugin.
+
+[Explore Prism AI](https://github.com/DudeSquad999/Prism-Ai) · [Windows releases](https://github.com/DudeSquad999/Prism-Ai/releases) · [Installation guide](https://github.com/DudeSquad999/Prism-Ai/blob/Main/docs/installation.md) · [Try the browser workspace](https://dudesquad999.github.io/Prism-Ai/)
+
+## Feedback, contributing, and security
+
+If something breaks or a step is confusing, I'd like to hear about it. [Open an issue](https://github.com/DudeSquad999/git-panic/issues) with the command, version, what you expected, and what happened. Remove credentials, private paths, and sensitive repository content before sharing logs.
+
+Read [CONTRIBUTING.md](CONTRIBUTING.md) for development checks and validation guidance, and [SECURITY.md](SECURITY.md) for the security policy.
+
+I'm not claiming a blanket installation, security-audit, release-readiness, or AI compatibility guarantee. The limitations above are part of the documentation, not fine print.
 
 ## Licensing status
 
-The manifest declares MIT, but the repository currently has no `LICENSE` file. The maintainer needs to resolve the missing file before users rely on distribution terms.
+The manifest declares MIT, but I still need to add the missing `LICENSE` file and resolve the repository's licensing documentation. Until then, don't rely on the manifest declaration alone for distribution terms.
