@@ -1,0 +1,82 @@
+name: Repair Dependabot alert 2
+
+on:
+  push:
+    branches: [fix/dependabot-2-lru]
+    paths: [.github/workflows/repair-dependabot-2.yml]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: repair-dependabot-2
+  cancel-in-progress: false
+
+jobs:
+  repair:
+    if: github.repository == 'DudeSquad999/git-panic' && github.ref == 'refs/heads/fix/dependabot-2-lru'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/dependabot-2-lru
+          persist-credentials: true
+      - name: Prepare Rust
+        run: |
+          rustup toolchain install stable --profile minimal --component rustfmt,clippy
+          rustup override set stable
+      - name: Apply dependency and API migration
+        shell: python
+        run: |
+          from pathlib import Path
+          manifest_path = Path('Cargo.toml')
+          source_path = Path('src/main.rs')
+          manifest = manifest_path.read_text()
+          source = source_path.read_text()
+          replacements = {
+              'ratatui = "0.26"': 'ratatui = { version = "0.30.2", default-features = false, features = ["std", "crossterm_0_29"] }',
+              'crossterm = "0.27"': 'crossterm = "0.29"',
+          }
+          for old, new in replacements.items():
+              if manifest.count(old) == 1:
+                  manifest = manifest.replace(old, new)
+              elif manifest.count(new) != 1:
+                  raise SystemExit(f'Unexpected manifest content: {old}')
+          if 'frame.size()' not in source and 'frame.area()' not in source:
+              raise SystemExit('Unexpected frame API; inspect manually')
+          source = source.replace('frame.size()', 'frame.area()')
+          manifest_path.write_text(manifest)
+          source_path.write_text(source)
+      - name: Resolve updated dependencies
+        run: cargo update -p ratatui -p crossterm
+      - name: Verify lru is removed
+        shell: python
+        run: |
+          import tomllib
+          from pathlib import Path
+          packages = tomllib.loads(Path('Cargo.lock').read_text())['package']
+          remaining = [p['version'] for p in packages if p['name'] == 'lru']
+          if remaining:
+              raise SystemExit(f'lru remains in lockfile: {remaining}')
+      - name: Format
+        run: cargo fmt --all
+      - name: Tests
+        run: cargo test --all-targets --locked
+      - name: Clippy
+        run: cargo clippy --all-targets --locked -- -D warnings
+      - name: Release build
+        run: cargo build --release --locked
+      - name: Verify diff
+        run: git diff --check
+      - name: Commit verified repair to fix branch only
+        run: |
+          git add -- Cargo.toml Cargo.lock src/main.rs
+          if git diff --cached --quiet; then
+            echo 'Repair already applied; no new commit needed.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'fix: remove vulnerable lru dependency for Dependabot alert 2'
+          git push origin HEAD:refs/heads/fix/dependabot-2-lru
