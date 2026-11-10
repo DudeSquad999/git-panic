@@ -33,6 +33,8 @@ Captured with [scripts/render-demo.sh](scripts/render-demo.sh) in a disposable p
 | JSON output | Use search and recovery from scripts or shell-capable coding assistants. |
 | Local operations | No checkout, reset, clean, stash, or remote operations. |
 
+![Recovery contract: search and preview are read-only; explicit creation adds a new branch without changing HEAD, the index, or working files. Not a backup of uncommitted work.](assets/readme/recovery-contract.svg)
+
 ## Installation
 
 You need Git, Rust 1.88 or newer with Cargo, and a native C compiler with platform build tools for vendored libgit2. Current stable Rust is recommended. OpenSSL development files are not required. The timeline needs an interactive terminal.
@@ -243,6 +245,8 @@ class node_developer toneIndigo
 Generated with [GitDiagram](https://gitdiagram.com/dudesquad999/git-panic).
 
 ## My other project: Prism AI
+
+[![Prism AI: research and writing workspace with the original purple prism and colored rays logo.](assets/readme/prism-project.svg)](https://github.com/DudeSquad999/Prism-Ai)
 
 [Prism AI](https://github.com/DudeSquad999/Prism-Ai) is my Windows research and writing workspace. I'm building it to make the path from a research question to a finished document easier to manage, with local or cloud AI and review of AI-proposed edits.
 
