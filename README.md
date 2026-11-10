@@ -40,11 +40,16 @@ git-panic --help
 Put Cargo's binary directory on PATH (`~/.cargo/bin`, or
 `%USERPROFILE%\.cargo\bin` on Windows). Alternatively build with
 `cargo build --release` and use `target/release/git-panic` (`git-panic.exe` on Windows).
-The source uses IsTerminal (Rust 1.70+), but dependency requirements may be newer;
-no minimum supported version or registry publication is verified here. This
-repository now ships a generated Cargo.lock, so use `--locked` for reproducible
-builds. Installation, tests and the tutorial below were verified on Linux with
-rustc 1.99.1; macOS and Windows checks run in CI but were not exercised locally.
+The source uses IsTerminal (Rust 1.70+), and the manifest declares
+rust-version 1.88: 1.88.0 was verified to build and test, while 1.87.0 cannot
+resolve the committed lockfile. The project is not published to a registry.
+This repository ships a generated Cargo.lock, so use `--locked` for
+reproducible builds. Installation, tests and the tutorial below were verified
+on Linux with rustc 1.99.1; CI has run the full check suite on Linux, macOS
+and Windows. A `cargo audit` scan of the committed lockfile found no
+vulnerabilities; five informational warnings exist in transitive dependencies
+(unmaintained `paste`; unsound advisories in `git2` itself and in `lru` 0.12.5
+via `ratatui` 0.26.3), none of which affect the operations git-panic performs.
 
 After installation, run the command inside the repository you want to inspect,
 not the git-panic source checkout. Another clone may lack the older local reflogs.

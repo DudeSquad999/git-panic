@@ -4,6 +4,9 @@ version = "0.1.0"
 edition = "2021"
 authors = ["DudeSquad999 <dudesquad999@users.noreply.github.com>"]
 description = "Visual Git Reflog Time Machine & Disaster Recovery CLI"
+# Verified floor: 1.88.0 builds and tests cleanly; 1.87.0 cannot resolve the
+# committed lockfile (several resolved dependencies require >= 1.88).
+rust-version = "1.88"
 license = "MIT"
 readme = "README.md"
 repository = "https://github.com/DudeSquad999/git-panic"
