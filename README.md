@@ -160,6 +160,6 @@ The project grew out of the maintainer's recovery experience while building
 
 ## Licensing status
 
-The manifest declares MIT, but the inspected repository has no LICENSE file.
-The declaration is preserved without inventing a holder or license text. The
-maintainer needs to resolve the missing file before users rely on distribution terms.
+The project is distributed under the MIT License (see [LICENSE](LICENSE)),
+matching the declaration in Cargo.toml. The copyright is held by Aidan
+(DudeSquad999).
