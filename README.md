@@ -26,7 +26,9 @@ It teaches the difference between preserving a commit and restoring working file
 ## Install
 
 Prerequisites: Git, current stable Rust with Cargo, and a native C compiler with
-platform build tools for git2/libgit2. The TUI requires an interactive terminal.
+platform build tools for the vendored libgit2. OpenSSL development files are not
+required: git-panic never performs network or remote operations. The TUI
+requires an interactive terminal.
 
 ```sh
 git clone https://github.com/DudeSquad999/git-panic.git
@@ -56,18 +58,26 @@ git-panic reset           # messages containing the literal substring "reset"
 git-panic "commit: fix"   # quote a search fragment containing spaces
 ```
 
-Up/Down selects an entry; q or Ctrl-C exits. The inspector shows the full SHA,
-reflog position and action message. R is not a restoration shortcut. Search is
-case-insensitive literal matching, not AI interpretation or regex. No matches
-produces a message but still exits successfully. Piping output to `head` or
-`grep -m` exits cleanly. Use search in captured shell tools.
+Up/Down (or j/k) selects an entry; PageUp/PageDown move by ten entries,
+Home/End jump to the newest/oldest, and q or Ctrl-C exits. The inspector shows
+the full SHA, reflog position and action message. R is not a restoration
+shortcut. Search is case-insensitive literal matching, not AI interpretation or
+regex. No matches or an empty reflog produces a distinct message but still exits
+successfully. Piping output to `head` or `grep -m` exits cleanly. Use search in
+captured shell tools.
 
 ## Preview, then preserve
 
 ![Illustrative recovery workflow: inspect a commit, preview its full SHA and an unused branch, then explicitly opt into branch creation.](assets/readme/workflow.svg)
 
-The image is a command guide, not captured output. Copy a full 40-character SHA
-from actual history, quit the TUI if using it, and choose an unused branch name:
+The first image is a command guide, not captured output. The second is real
+output, captured by [scripts/render-demo.sh](scripts/render-demo.sh) in a
+disposable practice repository (commands in blue, output in white):
+
+![Captured git-panic session: after a hard reset, search finds the lost commit, recover previews it, --create preserves it on a branch while the working file stays unchanged.](assets/demo-terminal.svg)
+
+Copy a full 40-character SHA from actual history, quit the TUI if using it,
+and choose an unused branch name:
 
 ```sh
 SHA='<paste-full-40-character-commit-SHA>'
@@ -88,10 +98,24 @@ Use the installed CLI through the assistant's shell tool. Prefer literal search
 and recover preview, not the interactive TUI. No plugin, MCP server, model key,
 or automatic permission bypass is supplied by git-panic.
 
+For parsing by a script or assistant, add `--json` to the two noninteractive
+commands. It is a small, tested interface, not a general automation framework:
+
+```sh
+git-panic --json reset                                  # {"query","match_count","matches":[{"index","oid","message"}]}
+git-panic recover "$SHA" --branch panic/recovered --json       # {"action":"preview","commit","branch","created":false}
+git-panic recover "$SHA" --branch panic/recovered --create --json
+```
+
+A search always exits 0 and reports `match_count`; check that field instead of
+assuming success means a match exists. Errors stay human-readable on stderr
+with a nonzero exit code. The JSON shape is stable within a version; check
+`git-panic --version` before relying on it across releases.
+
 The [AI-assistant guide and copy-paste task](docs/guide.md#use-with-claude-code-or-another-shell-capable-coding-assistant)
 show how to confirm the target repository, inspect candidates and stop for human
 approval before branch creation. They also explain cloud-output privacy and why
-human-readable CLI output is not a stable machine API.
+the default human-readable output should not be parsed by unattended tools.
 
 [AGENTS.md](AGENTS.md) guides assistants editing this project;
 [CLAUDE.md](CLAUDE.md) imports it for Claude Code. Installing git-panic does not

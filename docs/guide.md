@@ -103,8 +103,19 @@ unless that environment has access to the relevant repository and its local data
 
 Prefer literal search and recover preview. Do not launch the interactive TUI from
 a captured shell session: a populated TUI needs interactive stdin and stdout.
-Current output is human-readable text, not a stable JSON API. Do not build an
-unattended parser around it or assume that a successful search means a match exists.
+Default output is human-readable text; the documented machine interface is the
+`--json` flag on search and recover:
+
+```sh
+git-panic --json reset
+git-panic recover "$SHA" --branch panic/recovered --json
+```
+
+Search JSON contains `query`, `match_count`, and a `matches` array of
+`{index, oid, message}`. Recover JSON contains `action` (`preview` or
+`created`), `created`, `commit`, and `branch`. Do not parse the human-readable
+output, and do not assume a successful search means a match exists: check
+`match_count`. Errors stay human-readable on stderr with a nonzero exit code.
 
 ### A task you can paste into Claude Code or another coding assistant
 
@@ -112,7 +123,8 @@ unattended parser around it or assume that a successful search means a match exi
 Help me inspect possible Git recovery commits in the repository I identify.
 First confirm the repository path, my goal, and that git-panic is installed.
 Run git status --short and summarize the state without discarding or stashing work.
-Use noninteractive git-panic searches such as reset or rebase; do not use the TUI.
+Use noninteractive git-panic searches such as reset or rebase, optionally with
+--json for parseable output; do not use the TUI.
 If the searches miss the relevant history, explain the HEAD-reflog limitation.
 Do not invent commit IDs. Inspect candidate metadata with git show --no-patch
 and explain why a candidate might be relevant; ask me to choose the full SHA.
@@ -169,7 +181,9 @@ prompts, screenshots, issue reports, or recovery examples.
 - Command not found: check Cargo's binary directory on PATH. The assistant's shell
   can have a different environment from your terminal.
 - No repository: use the target project's working directory, not the tool checkout.
-- No entries/matches: check the clone and search fragment; do not claim success.
+- No entries/matches: an empty reflog is reported separately from a search with
+  no matches (which names the total searched). Check the clone and the search
+  fragment; do not claim success when nothing was found.
 - Unavailable commit: confirm the full SHA; an object may have been pruned.
 - Branch exists: choose a different name; do not force-update it.
 - Need actual file integration: that is a separate, potentially disruptive Git
