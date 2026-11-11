@@ -143,7 +143,7 @@ def heading_anchors(markdown):
         heading = match.group(2).replace(chr(96), "")
         heading = re.sub(r"[*_~]", "", html.unescape(heading).lower())
         slug = re.sub(r"[^\w -]", "", heading, flags=re.UNICODE)
-        slug = re.sub(r"\s+", "-", slug.strip())
+        slug = re.sub(r"\s", "-", slug.strip())
         if slug:
             count = used.get(slug, 0)
             used[slug] = count + 1
