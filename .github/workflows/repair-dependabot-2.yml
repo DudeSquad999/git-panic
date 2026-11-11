@@ -26,6 +26,8 @@ jobs:
         run: |
           rustup toolchain install stable --profile minimal --component rustfmt,clippy
           rustup override set stable
+          rustc --version
+          cargo --version
       - name: Apply dependency and API migration
         shell: python
         run: |
@@ -48,8 +50,8 @@ jobs:
           source = source.replace('frame.size()', 'frame.area()')
           manifest_path.write_text(manifest)
           source_path.write_text(source)
-      - name: Resolve updated dependencies
-        run: cargo update -p ratatui -p crossterm
+      - name: Regenerate dependency lockfile with Cargo
+        run: cargo generate-lockfile
       - name: Verify lru is removed
         shell: python
         run: |
@@ -67,8 +69,20 @@ jobs:
         run: cargo clippy --all-targets --locked -- -D warnings
       - name: Release build
         run: cargo build --release --locked
+      - name: Verify declared minimum Rust version
+        run: |
+          rustup toolchain install 1.88.0 --profile minimal
+          cargo +1.88.0 test --all-targets --locked
       - name: Verify diff
         run: git diff --check
+      - name: Upload repair files for review
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependabot-2-repair-files
+          path: |
+            Cargo.toml
+            Cargo.lock
+            src/main.rs
       - name: Commit verified repair to fix branch only
         run: |
           git add -- Cargo.toml Cargo.lock src/main.rs
