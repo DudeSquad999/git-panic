@@ -22,6 +22,7 @@ MAX_FILE_BYTES = 500_000
 MAX_PAGES = 5
 LINK_RE = re.compile(r"!?\[[^\]]*\]\(([^)]+)\)")
 HEADING_RE = re.compile(r"^\s{0,3}(#{1,6})\s+(.+?)\s*#*\s*$")
+EMOJI_RE = re.compile(r"[\U0001F000-\U0001FAFF\u2300-\u23FF\u2600-\u27BF\u2B00-\u2BFF]")
 TEXT_SUFFIXES = {
     ".md", ".mdx", ".txt", ".yml", ".yaml", ".json", ".toml", ".js",
     ".jsx", ".ts", ".tsx", ".py", ".ps1", ".sh", ".html", ".css",
@@ -252,6 +253,18 @@ def scan_secret_candidates(path, body):
     return hits
 
 
+def check_typography(markdown_files):
+    """Find em dashes and common emoji code points without copying full lines."""
+    findings = []
+    for path, body in markdown_files.items():
+        for line_number, line in enumerate(body.splitlines(), 1):
+            if "\u2014" in line:
+                findings.append({"path": path, "line": line_number, "kind": "em dash"})
+            if EMOJI_RE.search(line):
+                findings.append({"path": path, "line": line_number, "kind": "emoji"})
+    return findings
+
+
 def is_scannable_text(path, size):
     name = PurePosixPath(path).name
     return (
@@ -319,6 +332,14 @@ def audit(owner, repo_name):
                     "The {} branch is reported as unprotected. Consider requiring review and CI checks.".format(default_branch),
                     result["url"] + "/settings/branches")
 
+    try:
+        recent_commits, commits_capped = client.collection(client.repo_path + "/commits")
+        result["recent_commits"] = recent_commits[:10]
+        result["commits_capped"] = commits_capped
+    except AuditError as exc:
+        result["recent_commits"] = []
+        coverage.append("Recent commit history unavailable: {}".format(redact_sensitive_text(exc)))
+
     tree_data = client.json(client.repo_path + "/git/trees/{}?recursive=1".format(
         urllib.parse.quote(default_branch, safe="")
     ))
@@ -368,6 +389,24 @@ def audit(owner, repo_name):
             add_finding(findings, "INFO", "No recent failed workflow runs observed",
                         "No failed, timed-out, or action-required run was returned in the last 30 days.",
                         result["url"] + "/actions")
+
+    pages_runs = sorted(
+        [run for run in runs if "pages" in (run.get("name", "") + " " + run.get("display_title", "")).lower()],
+        key=lambda run: run.get("created_at") or "", reverse=True,
+    )
+    result["pages_latest_run"] = pages_runs[0] if pages_runs else None
+    if not pages_runs:
+        coverage.append("No GitHub Pages deployment run was identified in the returned Actions history.")
+    elif pages_runs[0].get("conclusion") == "success":
+        add_finding(findings, "INFO", "Latest GitHub Pages workflow succeeded",
+                    "The latest Pages-related workflow run completed successfully.",
+                    pages_runs[0].get("html_url") or result["url"] + "/actions")
+    elif pages_runs[0].get("conclusion") in {"failure", "timed_out", "action_required"}:
+        add_finding(findings, "HIGH", "Latest GitHub Pages workflow failed",
+                    "The latest Pages-related workflow run did not complete successfully.",
+                    pages_runs[0].get("html_url") or result["url"] + "/actions")
+    else:
+        coverage.append("Latest Pages workflow is not in a terminal success/failure state.")
 
     try:
         releases, _ = client.collection(client.repo_path + "/releases")
@@ -473,6 +512,163 @@ def audit(owner, repo_name):
                     "Some text files were skipped, could not be fetched, or were omitted by a truncated tree.")
 
     markdown = {p: body for p, body in texts.items() if p.lower().endswith((".md", ".mdx"))}
+
+    # YAML syntax checks use PyYAML when present; absence is reported as unavailable.
+    yaml_paths = sorted(p for p in tracked if p.lower().endswith((".yml", ".yaml")))
+    yaml_result = {"status": "unavailable", "checked": 0, "failed": []}
+    try:
+        import yaml
+    except ImportError:
+        coverage.append("YAML syntax validation unavailable because PyYAML is not installed in the runner.")
+    else:
+        yaml_failures = []
+        for path in yaml_paths:
+            body = texts.get(path)
+            if body is None:
+                yaml_failures.append({"path": path, "problem": "file was not fetched"})
+                continue
+            try:
+                yaml.safe_load(body)
+                yaml_result["checked"] += 1
+            except yaml.YAMLError as exc:
+                yaml_failures.append({"path": path, "problem": type(exc).__name__})
+        yaml_result = {"status": "failed" if yaml_failures else "passed",
+                       "checked": yaml_result["checked"], "failed": yaml_failures}
+        if yaml_failures:
+            add_finding(findings, "MEDIUM", "YAML syntax validation found errors",
+                        "{} YAML file(s) failed parsing or could not be fetched.".format(len(yaml_failures)),
+                        result["url"])
+        else:
+            add_finding(findings, "INFO", "YAML syntax validation passed",
+                        "{} tracked YAML file(s) parsed successfully.".format(yaml_result["checked"]),
+                        result["url"])
+    result["yaml_check"] = yaml_result
+
+    typography = check_typography(markdown)
+    result["typography"] = typography
+    if typography:
+        add_finding(findings, "MEDIUM", "Em dash or emoji found in Markdown",
+                    "{} typography match(es) were found across scanned Markdown files.".format(len(typography)),
+                    result["url"])
+    else:
+        add_finding(findings, "INFO", "Markdown typography check passed",
+                    "No em dashes or common emoji code points were found in scanned Markdown files.",
+                    result["url"])
+
+    # README command, pinned installer, published release, and digest must agree.
+    readme = texts.get("README.md", "")
+    installer = texts.get("scripts/install.ps1", "")
+    version_match = re.search(r"(?mi)^\s*\$version\s*=\s*['\"]([^'\"]+)['\"]", installer)
+    url_match = re.search(r"(?mi)^\s*\$downloadUri\s*=\s*['\"]([^'\"]+)['\"]", installer)
+    digest_match = re.search(r"(?mi)^\s*\$expectedSha256\s*=\s*['\"]([0-9a-fA-F]{64})['\"]", installer)
+    install_info = {
+        "version": version_match.group(1) if version_match else None,
+        "download_url": url_match.group(1) if url_match else None,
+        "expected_sha256": digest_match.group(1).lower() if digest_match else None,
+        "release_match": None,
+        "asset_match": None,
+        "digest_match": None,
+        "readme_command": "unavailable",
+    }
+    if not installer or not (version_match and url_match and digest_match):
+        add_finding(findings, "HIGH", "Installer version, URL, or SHA-256 could not be read",
+                    "scripts/install.ps1 is missing or does not expose the expected pinned version, download URL, and 64-character SHA-256 fields.",
+                    result["url"] + "/blob/" + default_branch + "/scripts/install.ps1")
+    else:
+        version = version_match.group(1)
+        release_tag = "v" + version
+        url_parts = urllib.parse.urlsplit(url_match.group(1))
+        expected_asset_name = "Prism-{}.exe".format(version)
+        if url_parts.path.rstrip("/").endswith("/releases/download/{}/{}".format(release_tag, expected_asset_name)):
+            install_info["download_url_consistent"] = True
+        else:
+            install_info["download_url_consistent"] = False
+            add_finding(findings, "HIGH", "Installer URL does not match its pinned version",
+                        "The installer version, release tag, or asset filename in scripts/install.ps1 are inconsistent.",
+                        result["url"] + "/blob/" + default_branch + "/scripts/install.ps1")
+        matching_release = next((rel for rel in releases if rel.get("tag_name") == release_tag
+                                 and not rel.get("draft")), None)
+        install_info["release_match"] = bool(matching_release)
+        if not matching_release:
+            add_finding(findings, "HIGH", "Pinned installer release was not found",
+                        "No published GitHub release matches the installer version {}.".format(version),
+                        result["url"] + "/releases")
+        else:
+            asset = next((a for a in matching_release.get("assets", [])
+                          if a.get("name") == expected_asset_name), None)
+            install_info["asset_match"] = bool(asset)
+            if not asset:
+                add_finding(findings, "HIGH", "Pinned Windows installer asset is missing",
+                            "Release {} does not contain the expected {} asset.".format(release_tag, expected_asset_name),
+                            matching_release.get("html_url") or result["url"] + "/releases")
+            else:
+                observed_digest = asset.get("digest") or ""
+                if observed_digest.lower().startswith("sha256:"):
+                    install_info["digest_match"] = observed_digest.split(":", 1)[1].lower() == digest_match.group(1).lower()
+                    if install_info["digest_match"]:
+                        add_finding(findings, "INFO", "Installer checksum matches published release metadata",
+                                    "The installer SHA-256 in scripts/install.ps1 matches GitHub's digest for {}. The binary was not independently downloaded or re-hashed.".format(expected_asset_name),
+                                    matching_release.get("html_url") or result["url"] + "/releases")
+                    else:
+                        add_finding(findings, "CRITICAL", "Installer checksum does not match release metadata",
+                                    "The expected SHA-256 in scripts/install.ps1 differs from GitHub's published digest for the pinned asset.",
+                                    matching_release.get("html_url") or result["url"] + "/releases")
+                else:
+                    coverage.append("GitHub did not expose a SHA-256 digest for the pinned installer asset; checksum parity could not be verified.")
+        readme_version_found = bool(re.search(r"(?<![0-9])v?{}(?![0-9])".format(re.escape(version)), readme))
+        install_info["readme_mentions_version"] = readme_version_found
+        if not readme_version_found:
+            add_finding(findings, "MEDIUM", "README does not identify the pinned installer version",
+                        "The README was not found to mention the installer version {}.".format(version),
+                        result["url"] + "/blob/" + default_branch + "/README.md")
+
+    command_match = re.search(r"(?mi)^\s*irm\s+(.+?)\s*\|\s*iex\s*$", readme)
+    if command_match:
+        command_target = command_match.group(1).strip()
+        install_info["readme_command"] = "wrapped" if command_target.startswith("[") or "](" in command_target else "raw"
+        expected_script_url = "https://raw.githubusercontent.com/{}/{}/{}/scripts/install.ps1".format(owner, repo_name, default_branch)
+        if install_info["readme_command"] == "wrapped":
+            add_finding(findings, "HIGH", "README PowerShell installer command wraps its URL in Markdown",
+                        "The irm command must use a plain raw.githubusercontent.com URL, not Markdown link syntax, so PowerShell can execute the documented copy-paste command.",
+                        result["url"] + "/blob/" + default_branch + "/README.md")
+        elif command_target != expected_script_url:
+            add_finding(findings, "HIGH", "README installer command points to a different script URL",
+                        "The README command does not match the expected raw URL for scripts/install.ps1 on the default branch.",
+                        result["url"] + "/blob/" + default_branch + "/README.md")
+        else:
+            add_finding(findings, "INFO", "README installer command URL is consistent",
+                        "The documented PowerShell command points directly to scripts/install.ps1 on the default branch.",
+                        result["url"] + "/blob/" + default_branch + "/README.md")
+    else:
+        add_finding(findings, "MEDIUM", "README installer command was not found",
+                    "No standalone irm URL piped to iex was detected in the README.",
+                    result["url"] + "/blob/" + default_branch + "/README.md")
+    result["installer_consistency"] = install_info
+
+    # Detect the known stale browser-preview guide claim against the dedicated guide.
+    first_session = texts.get("docs/first-session.md", "")
+    browser_guide = texts.get("docs/browser-demo.md", "")
+    if (re.search(r"does not connect to an AI model|does not connect to AI", first_session, re.I)
+            and re.search(r"connect directly to an Ollama|connect live AI with Ollama", browser_guide, re.I)):
+        add_finding(findings, "MEDIUM", "Browser-preview documentation makes conflicting live-AI claims",
+                    "docs/first-session.md describes a sample-only preview while docs/browser-demo.md documents a live Ollama connection. Reconcile the guide wording without changing the actual product scope.",
+                    result["url"] + "/blob/" + default_branch + "/docs/first-session.md")
+
+    architecture_docs = sorted(p for p in tracked if re.search(r"(^|/)architecture([_-][^/]+)?\.md$", p, re.I)
+                               or PurePosixPath(p).name.lower() == "project_structure.md")
+    runbook_docs = sorted(p for p in tracked if re.search(r"(^|/)(runbook|runbooks)(/|$)", p, re.I))
+    result["architecture_docs"], result["runbook_docs"] = architecture_docs, runbook_docs
+    if architecture_docs:
+        add_finding(findings, "INFO", "Project structure or architecture documentation exists",
+                    "Found: {}.".format(", ".join(architecture_docs[:10])), result["url"])
+    else:
+        add_finding(findings, "LOW", "No architecture overview document found",
+                    "No dedicated architecture or project-structure Markdown document was found.", result["url"])
+    if not runbook_docs:
+        add_finding(findings, "LOW", "No runbook directory found",
+                    "No runbooks/ or docs/runbooks/ directory was found. Consider adding release, Pages/CI, and security incident procedures.",
+                    result["url"])
+
     links = check_markdown_links(markdown, tracked)
     result["link_results"] = links
     if links["broken"]:
@@ -559,9 +755,53 @@ def render_report(data):
         "- Open issues: {}".format(len(data.get("open_issues", []))),
         "- Open pull requests: {}".format(len(data.get("open_pulls", []))),
         "- Releases returned: {}".format(len(data.get("releases", []))),
+        "- Branches returned: {}".format(len(data.get("branches", []))),
         "- Homepage HTTP status: {}".format(data.get("homepage_status", "not checked")),
-        "", "## Recent workflow runs", "",
+        "- YAML syntax check: {} ({} file(s))".format(data.get("yaml_check", {}).get("status", "unavailable"), data.get("yaml_check", {}).get("checked", 0)),
+        "- Markdown em dash / emoji matches: {}".format(len(data.get("typography", []))),
+        "- Architecture/structure docs: {}".format(", ".join(data.get("architecture_docs", [])) or "none"),
+        "- Runbook files: {}".format(len(data.get("runbook_docs", []))),
+        "", "## Recent commits", "",
     ])
+    commits = data.get("recent_commits", [])
+    if not commits:
+        lines.append("No recent commits were returned.")
+    for commit in commits[:10]:
+        detail = commit.get("commit", {})
+        lines.append("- [{}]({}) — {}".format(
+            (detail.get("author", {}).get("date") or "unknown")[:10],
+            safe_report_url(commit.get("html_url")) or data["url"] + "/commits/" + commit.get("sha", ""),
+            safe_title((detail.get("message") or "").splitlines()[0]),
+        ))
+    pages = data.get("pages_latest_run")
+    lines.extend(["", "## GitHub Pages", ""])
+    if pages:
+        lines.append("- Latest Pages-related run: [{}]({}) — {}.".format(
+            safe_title(pages.get("name") or pages.get("display_title") or "Pages workflow"),
+            safe_report_url(pages.get("html_url")) or data["url"] + "/actions",
+            pages.get("conclusion") or pages.get("status") or "unknown",
+        ))
+    else:
+        lines.append("No Pages-related workflow run was identified in the returned history.")
+    install = data.get("installer_consistency", {})
+    lines.extend(["", "## README, installer, and release consistency", "",
+        "- Pinned installer version: {}".format(install.get("version") or "not found"),
+        "- README command form: {}".format(install.get("readme_command", "unavailable")),
+        "- Installer URL/version consistency: {}".format(install.get("download_url_consistent", "not checked")),
+        "- Matching published release: {}".format(install.get("release_match", "not checked")),
+        "- Expected EXE asset present: {}".format(install.get("asset_match", "not checked")),
+        "- SHA-256 agrees with GitHub release metadata: {}".format(install.get("digest_match", "not checked")),
+        "- README mentions pinned version: {}".format(install.get("readme_mentions_version", "not checked")),
+        "- Binary download and independent re-hash: not performed.",
+    ])
+    lines.extend(["", "## Markdown typography", ""])
+    for item in data.get("typography", [])[:100]:
+        lines.append("- {}:{} — {}".format(safe_title(item["path"]), item["line"], item["kind"]))
+    if not data.get("typography"):
+        lines.append("No em dash or common emoji code point was found in scanned Markdown files.")
+    lines.extend(["", "## Architecture and runbooks", ""])
+    lines.append("- Architecture/structure docs: {}".format(", ".join(data.get("architecture_docs", [])) or "none"))
+    lines.append("- Runbooks: {}".format(", ".join(data.get("runbook_docs", [])) or "none"))
     runs = data.get("workflow_runs", [])
     if not runs:
         lines.append("No workflow runs were returned.")
@@ -612,6 +852,7 @@ def render_report(data):
         "- Unavailable GitHub settings are reported as unavailable, not as passing.",
         "- Release binaries are not downloaded or independently re-hashed.",
         "- Runtime application behavior, private alerts, account-level settings, and actual response performance are not verified.",
+        "- History credential scanning is not performed; the credential scan covers tracked text files at the current default-branch revision only.",
     ])
     lines.extend("- {}".format(safe_title(note)) for note in data.get("coverage", []))
     lines.extend([

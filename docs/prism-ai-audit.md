@@ -16,17 +16,19 @@ and Python syntax checks, not the scheduled audit.
 
 ## What it checks
 
-- Repository metadata, default branch, tracked-file inventory, topics, license,
-  homepage, releases, open issues, and open pull requests.
-- GitHub Actions workflow inventory and recent run results.
-- Publicly exposed secret-scanning, push-protection, and Dependabot update
-  settings.
-- Default-branch protection as reported by the GitHub branches API.
-- Relative Markdown links and local Markdown heading anchors.
-- High-confidence credential patterns in fetched tracked text files.
-- Configured homepage HTTP response.
-- Whether a 24-hour or one-business-day support commitment appears in scanned
-  Markdown documentation.
+- Repository metadata, default branch protection, branch and commit snapshots,
+  About description/topics, license, homepage, releases, issues, and PRs.
+- GitHub Actions run health and the latest Pages-related deployment result.
+- README installer command, pinned installer version and URL, published EXE
+  asset, and expected SHA-256 versus GitHub's release digest metadata.
+- Relative Markdown links, local heading anchors, available YAML syntax checks,
+  and em dash/emoji scans in Markdown.
+- Publicly exposed secret-scanning, push-protection, and Dependabot settings,
+  plus high-confidence credential patterns in fetched tracked text files.
+- Architecture/project-structure documentation, runbook presence, and a known
+  browser-preview documentation consistency check.
+- Whether a 24-hour or one-business-day support acknowledgement commitment
+  appears in scanned Markdown documentation.
 
 Potential credentials are never printed. Reports include only file paths, line
 numbers, and detector names.
@@ -66,7 +68,12 @@ This is a monitoring and triage report, not a security certification.
 - External Markdown links are counted but not fetched.
 - GitHub may hide settings or API data based on the current access level. An
   unavailable check is reported as unavailable, not treated as a pass.
-- The report does not download or independently re-hash release binaries.
+- YAML parsing uses PyYAML only when available in the runner; otherwise the
+  result is explicitly marked unavailable.
+- Typography scans cover common emoji Unicode ranges and em dashes in fetched
+  Markdown. They are automated checks, not a complete language/style review.
+- The report does not download or independently re-hash release binaries; it
+  compares the install script digest with GitHub's published asset digest.
 - It cannot validate desktop application behavior, private Dependabot alerts,
   account-level settings, or actual support response performance.
 - No issue, pull request, commit, release, or configuration is automatically

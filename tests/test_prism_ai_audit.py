@@ -2,6 +2,7 @@ import unittest
 
 from scripts.prism_ai_audit import (
     check_markdown_links,
+    check_typography,
     heading_anchors,
     is_scannable_text,
     redact_sensitive_text,
@@ -52,6 +53,13 @@ class MarkdownLinkTests(unittest.TestCase):
         self.assertIn("setup", anchors)
         self.assertIn("setup-1", anchors)
         self.assertIn("a--b", anchors)
+
+    def test_typography_detects_em_dash_and_emoji(self):
+        result = check_typography({"README.md": "No issue\nAn em dash — here\nA smile 😀\n"})
+        self.assertEqual([item["kind"] for item in result], ["em dash", "emoji"])
+
+    def test_typography_accepts_clean_markdown(self):
+        self.assertEqual(check_typography({"README.md": "Plain text and hyphens - only\n"}), [])
 
 
 class CredentialScanTests(unittest.TestCase):
