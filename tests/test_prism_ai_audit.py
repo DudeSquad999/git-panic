@@ -48,6 +48,20 @@ class MarkdownLinkTests(unittest.TestCase):
         self.assertEqual(result["checked"], 0)
         self.assertEqual(result["broken"], [])
 
+    def test_html_image_source_is_checked(self):
+        result = check_markdown_links(
+            {"README.md": '<img src="docs/images/flow.svg">\n'}, self.paths
+        )
+        self.assertEqual(result["html_checked"], 1)
+        self.assertEqual(result["broken"], [])
+
+    def test_missing_html_asset_is_reported(self):
+        result = check_markdown_links(
+            {"README.md": '<img src="missing-banner.png">\n'}, self.paths
+        )
+        self.assertEqual(len(result["broken"]), 1)
+        self.assertEqual(result["broken"][0]["kind"], "HTML src/href")
+
     def test_duplicate_heading_slugs(self):
         anchors = heading_anchors("# Setup\n\n## Setup!\n\n## A & B\n")
         self.assertIn("setup", anchors)

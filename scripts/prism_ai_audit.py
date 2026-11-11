@@ -21,6 +21,7 @@ MAX_TEXT_FILES = 350
 MAX_FILE_BYTES = 500_000
 MAX_PAGES = 5
 LINK_RE = re.compile(r"!?\[[^\]]*\]\(([^)]+)\)")
+HTML_ATTR_RE = re.compile(r"(?i)\b(?:src|href)\s*=\s*[\"']([^\"']+)[\"']")
 HEADING_RE = re.compile(r"^\s{0,3}(#{1,6})\s+(.+?)\s*#*\s*$")
 EMOJI_RE = re.compile(r"[\U0001F000-\U0001FAFF\u2300-\u23FF\u2600-\u27BF\u2B00-\u2BFF]")
 TEXT_SUFFIXES = {
@@ -214,9 +215,11 @@ def resolve_relative_link(source, target, tracked_paths, anchors_by_path):
 
 def check_markdown_links(markdown_files, tracked_paths):
     anchors = {path: heading_anchors(body) for path, body in markdown_files.items()}
-    broken, external, checked = [], 0, 0
+    broken, external, checked, html_checked = [], 0, 0, 0
     for source, body in markdown_files.items():
-        for match in LINK_RE.finditer(body):
+        matches = [(match, False) for match in LINK_RE.finditer(body)]
+        matches.extend((match, True) for match in HTML_ATTR_RE.finditer(body))
+        for match, is_html in matches:
             raw = match.group(1).strip()
             if raw.startswith("<") and ">" in raw:
                 target = raw[1:raw.index(">")]
@@ -227,8 +230,12 @@ def check_markdown_links(markdown_files, tracked_paths):
             parts = urllib.parse.urlsplit(target)
             if parts.scheme or parts.netloc:
                 external += 1
+                if is_html:
+                    html_checked += 1
                 continue
             checked += 1
+            if is_html:
+                html_checked += 1
             problem = resolve_relative_link(source, target, tracked_paths, anchors)
             if problem:
                 broken.append({
@@ -236,8 +243,9 @@ def check_markdown_links(markdown_files, tracked_paths):
                     "line": body.count("\n", 0, match.start()) + 1,
                     "target": target,
                     "problem": problem,
+                    "kind": "HTML src/href" if is_html else "Markdown link",
                 })
-    return {"checked": checked, "external": external, "broken": broken}
+    return {"checked": checked, "external": external, "html_checked": html_checked, "broken": broken}
 
 
 def scan_secret_candidates(path, body):
@@ -545,6 +553,14 @@ def audit(owner, repo_name):
     result["yaml_check"] = yaml_result
 
     typography = check_typography(markdown)
+    commit_text = {}
+    for commit in result.get("recent_commits", []):
+        sha = (commit.get("sha") or "unknown")[:12]
+        message = commit.get("commit", {}).get("message") or ""
+        commit_text["recent-commit/{}".format(sha)] = message
+    for item in check_typography(commit_text):
+        item["kind"] = "commit " + item["kind"]
+        typography.append(item)
     result["typography"] = typography
     if typography:
         add_finding(findings, "MEDIUM", "Em dash or emoji found in Markdown",
@@ -586,6 +602,18 @@ def audit(owner, repo_name):
             add_finding(findings, "HIGH", "Installer URL does not match its pinned version",
                         "The installer version, release tag, or asset filename in scripts/install.ps1 are inconsistent.",
                         result["url"] + "/blob/" + default_branch + "/scripts/install.ps1")
+        published_releases = sorted(
+            [rel for rel in releases if not rel.get("draft") and not rel.get("prerelease")],
+            key=lambda rel: rel.get("published_at") or rel.get("created_at") or "",
+            reverse=True,
+        )
+        latest_published_tag = published_releases[0].get("tag_name") if published_releases else None
+        install_info["latest_published_tag"] = latest_published_tag
+        install_info["matches_latest_published_release"] = latest_published_tag == release_tag
+        if latest_published_tag and latest_published_tag != release_tag:
+            add_finding(findings, "MEDIUM", "Installer is pinned behind the latest published release",
+                        "scripts/install.ps1 targets {}, but the latest published release is {}. Confirm whether the installer pin and README are intentionally held back.".format(release_tag, latest_published_tag),
+                        result["url"] + "/releases")
         matching_release = next((rel for rel in releases if rel.get("tag_name") == release_tag
                                  and not rel.get("draft")), None)
         install_info["release_match"] = bool(matching_release)
@@ -791,6 +819,8 @@ def render_report(data):
         "- Matching published release: {}".format(install.get("release_match", "not checked")),
         "- Expected EXE asset present: {}".format(install.get("asset_match", "not checked")),
         "- SHA-256 agrees with GitHub release metadata: {}".format(install.get("digest_match", "not checked")),
+        "- Latest published release tag: {}".format(install.get("latest_published_tag", "not checked")),
+        "- Installer matches latest published release: {}".format(install.get("matches_latest_published_release", "not checked")),
         "- README mentions pinned version: {}".format(install.get("readme_mentions_version", "not checked")),
         "- Binary download and independent re-hash: not performed.",
     ])
@@ -802,6 +832,7 @@ def render_report(data):
     lines.extend(["", "## Architecture and runbooks", ""])
     lines.append("- Architecture/structure docs: {}".format(", ".join(data.get("architecture_docs", [])) or "none"))
     lines.append("- Runbooks: {}".format(", ".join(data.get("runbook_docs", [])) or "none"))
+    lines.extend(["", "## Recent workflow runs", ""])
     runs = data.get("workflow_runs", [])
     if not runs:
         lines.append("No workflow runs were returned.")
@@ -830,12 +861,12 @@ def render_report(data):
     links = data.get("link_results", {})
     lines.extend([
         "", "## Documentation link check", "",
-        "- Relative links checked: {}; external links not fetched: {}; broken relative links: {}.".format(
-            links.get("checked", 0), links.get("external", 0), len(links.get("broken", []))),
+        "- Relative links checked: {}; HTML src/href attributes checked: {}; external links not fetched: {}; broken relative references: {}.".format(
+            links.get("checked", 0), links.get("html_checked", 0), links.get("external", 0), len(links.get("broken", []))),
     ])
     for item in links.get("broken", [])[:100]:
-        lines.append("- {}:{} — broken relative link ({})".format(
-            safe_title(item["source"]), item["line"], safe_title(item["problem"])))
+        lines.append("- {}:{} — broken {} reference ({})".format(
+            safe_title(item["source"]), item["line"], item.get("kind", "local"), safe_title(item["problem"])))
     scan = data.get("secret_scan", {})
     lines.extend([
         "", "## Credential pattern scan", "",
