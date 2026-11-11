@@ -1,0 +1,67 @@
+name: Prism AI weekly repository audit
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/prism-ai-audit.yml"
+      - "scripts/prism_ai_audit.py"
+      - "tests/test_prism_ai_audit.py"
+      - "docs/prism-ai-audit.md"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/prism-ai-audit.yml"
+      - "scripts/prism_ai_audit.py"
+      - "tests/test_prism_ai_audit.py"
+      - "docs/prism-ai-audit.md"
+  schedule:
+    - cron: "0 14 * * 2"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: prism-ai-audit-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  tests:
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out git-panic
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run audit unit tests
+        run: python -m unittest discover -s tests -p "test_prism_ai_audit.py" -v
+      - name: Check Python syntax
+        run: python -m py_compile scripts/prism_ai_audit.py tests/test_prism_ai_audit.py
+
+  audit:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out git-panic
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run read-only Prism AI audit
+        run: python scripts/prism_ai_audit.py --output prism-ai-audit.md
+      - name: Add report to workflow summary
+        run: cat prism-ai-audit.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload audit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: prism-ai-audit-${{ github.run_number }}
+          path: prism-ai-audit.md
+          if-no-files-found: error
+          retention-days: 90
