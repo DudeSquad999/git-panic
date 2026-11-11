@@ -262,6 +262,19 @@ def scan_secret_candidates(body):
     return match_count
 
 
+
+def check_typography(markdown_files):
+    """Find em dashes and common emoji code points without copying full lines."""
+    findings = []
+    for path, body in markdown_files.items():
+        for line_number, line in enumerate(body.splitlines(), 1):
+            if "\u2014" in line:
+                findings.append({"path": path, "line": line_number, "kind": "em dash"})
+            if EMOJI_RE.search(line):
+                findings.append({"path": path, "line": line_number, "kind": "emoji"})
+    return findings
+
+
 def is_scannable_text(path, size):
     name = PurePosixPath(path).name
     return (
