@@ -249,17 +249,15 @@ def check_markdown_links(markdown_files, tracked_paths):
 
 
 def scan_secret_candidates(body):
-    """Count candidate matches without retaining matched values or line records."""
-    match_count = 0
+    """Return only whether a configured pattern matched."""
     for line in body.splitlines():
         for _, pattern in SECRET_PATTERNS:
             for match in pattern.finditer(line):
-                value = match.group(1) if match.lastindex else match.group(0)
-                if any(word in value.lower() for word in PLACEHOLDER_WORDS):
+                candidate = match.group(1) if match.lastindex else match.group(0)
+                if any(word in candidate.lower() for word in PLACEHOLDER_WORDS):
                     continue
-                match_count += 1
-                break
-    return match_count
+                return True
+    return False
 
 
 
@@ -710,20 +708,16 @@ def audit(owner, repo_name):
                     "{} relative links checked in {} Markdown files; {} external links were not fetched.".format(
                         links["checked"], len(markdown), links["external"]), result["url"])
 
-    match_count = sum(scan_secret_candidates(body) for body in texts.values())
-    result["secret_scan"] = {
-        "scanned_files": len(texts), "eligible_files": len(eligible),
-        "skipped_files": skipped, "fetch_failures": len(fetch_failures),
-        "match_count": match_count,
-    }
-    if match_count:
+    secret_pattern_found = any(scan_secret_candidates(body) for body in texts.values())
+    if secret_pattern_found:
         add_finding(findings, "CRITICAL", "Potential credential pattern detected",
-                    "{} candidate credential pattern(s) detected. Matched values and match-derived records are not retained or reported.".format(
-                        match_count), result["url"])
+                    "At least one configured credential pattern matched. Matched content and match-derived records are discarded and are not included in the report.",
+                    result["url"])
     else:
         add_finding(findings, "INFO", "No configured credential patterns matched",
                     "No configured high-confidence patterns matched in fetched text files. This is not proof that no secret exists.",
                     result["url"])
+
 
     support_text = "\n".join(body for path, body in markdown.items())
     if re.search(r"\b24[\s-]?(?:hours?|h)\b|\bone business day\b", support_text, re.I):
@@ -868,12 +862,10 @@ def render_report(data):
     for item in links.get("broken", [])[:100]:
         lines.append("- {}:{} — broken {} reference ({})".format(
             safe_title(item["source"]), item["line"], item.get("kind", "local"), safe_title(item["problem"])))
-    scan = data.get("secret_scan", {})
     lines.extend([
         "", "## Credential pattern scan", "",
-        "- Files fetched: {}; eligible text files: {}; possible matches: {}.".format(
-            scan.get("scanned_files", 0), scan.get("eligible_files", 0), scan.get("match_count", 0)),
-        "- Candidate secret values and match-derived file/line records are never retained or printed.",
+        "- Configured high-confidence credential patterns were checked against fetched tracked text files.",
+        "- A match creates a fixed critical finding. Matched values, file paths, line numbers, and match counts are not retained in report data.",
     ])
     lines.extend([
         "", "## Coverage and limitations", "",

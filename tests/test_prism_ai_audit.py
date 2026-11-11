@@ -77,16 +77,16 @@ class MarkdownLinkTests(unittest.TestCase):
 
 
 class CredentialScanTests(unittest.TestCase):
-    def test_detects_secret_as_aggregate_count_only(self):
+    def test_detects_secret_as_boolean_only(self):
         candidate = "ghp_" + ("A" * 36)
-        match_count = scan_secret_candidates("TOKEN = " + candidate)
-        self.assertEqual(match_count, 1)
-        self.assertIsInstance(match_count, int)
-        self.assertNotIn(candidate, str(match_count))
+        match_found = scan_secret_candidates("TOKEN = " + candidate)
+        self.assertIs(match_found, True)
+        self.assertIsInstance(match_found, bool)
+        self.assertNotIn(candidate, str(match_found))
 
     def test_placeholder_is_ignored(self):
         candidate = "ghp_" + ("example" * 6)
-        self.assertEqual(scan_secret_candidates(candidate), 0)
+        self.assertIs(scan_secret_candidates(candidate), False)
 
     def test_dotenv_files_are_included_in_scan(self):
         self.assertTrue(is_scannable_text(".env", 20))
@@ -105,8 +105,8 @@ class CredentialScanTests(unittest.TestCase):
         self.assertEqual(safe, "https://example.com/path")
 
     def test_private_key_marker_is_detected(self):
-        match_count = scan_secret_candidates("-----BEGIN PRIVATE KEY-----\n")
-        self.assertEqual(match_count, 1)
+        match_found = scan_secret_candidates("-----BEGIN PRIVATE KEY-----\n")
+        self.assertIs(match_found, True)
 
 
 if __name__ == "__main__":
