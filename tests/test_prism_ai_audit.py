@@ -77,16 +77,16 @@ class MarkdownLinkTests(unittest.TestCase):
 
 
 class CredentialScanTests(unittest.TestCase):
-    def test_detects_without_returning_secret_value(self):
+    def test_detects_secret_as_aggregate_count_only(self):
         candidate = "ghp_" + ("A" * 36)
-        hits = scan_secret_candidates("src/config.py", "TOKEN = " + candidate)
-        self.assertEqual(len(hits), 1)
-        self.assertEqual(hits[0]["detector"], "github-token")
-        self.assertNotIn(candidate, str(hits))
+        match_count = scan_secret_candidates("TOKEN = " + candidate)
+        self.assertEqual(match_count, 1)
+        self.assertIsInstance(match_count, int)
+        self.assertNotIn(candidate, str(match_count))
 
     def test_placeholder_is_ignored(self):
         candidate = "ghp_" + ("example" * 6)
-        self.assertEqual(scan_secret_candidates("README.md", candidate), [])
+        self.assertEqual(scan_secret_candidates(candidate), 0)
 
     def test_dotenv_files_are_included_in_scan(self):
         self.assertTrue(is_scannable_text(".env", 20))
@@ -105,9 +105,8 @@ class CredentialScanTests(unittest.TestCase):
         self.assertEqual(safe, "https://example.com/path")
 
     def test_private_key_marker_is_detected(self):
-        hits = scan_secret_candidates("keys.txt", "-----BEGIN PRIVATE KEY-----\n")
-        self.assertEqual(len(hits), 1)
-        self.assertEqual(hits[0]["detector"], "private-key")
+        match_count = scan_secret_candidates("-----BEGIN PRIVATE KEY-----\n")
+        self.assertEqual(match_count, 1)
 
 
 if __name__ == "__main__":

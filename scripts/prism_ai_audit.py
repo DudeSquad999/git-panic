@@ -248,29 +248,18 @@ def check_markdown_links(markdown_files, tracked_paths):
     return {"checked": checked, "external": external, "html_checked": html_checked, "broken": broken}
 
 
-def scan_secret_candidates(path, body):
-    hits = []
-    for line_number, line in enumerate(body.splitlines(), 1):
-        for name, pattern in SECRET_PATTERNS:
+def scan_secret_candidates(body):
+    """Count candidate matches without retaining matched values or line records."""
+    match_count = 0
+    for line in body.splitlines():
+        for _, pattern in SECRET_PATTERNS:
             for match in pattern.finditer(line):
                 value = match.group(1) if match.lastindex else match.group(0)
                 if any(word in value.lower() for word in PLACEHOLDER_WORDS):
                     continue
-                hits.append({"path": path, "line": line_number, "detector": name})
+                match_count += 1
                 break
-    return hits
-
-
-def check_typography(markdown_files):
-    """Find em dashes and common emoji code points without copying full lines."""
-    findings = []
-    for path, body in markdown_files.items():
-        for line_number, line in enumerate(body.splitlines(), 1):
-            if "\u2014" in line:
-                findings.append({"path": path, "line": line_number, "kind": "em dash"})
-            if EMOJI_RE.search(line):
-                findings.append({"path": path, "line": line_number, "kind": "emoji"})
-    return findings
+    return match_count
 
 
 def is_scannable_text(path, size):
@@ -708,17 +697,16 @@ def audit(owner, repo_name):
                     "{} relative links checked in {} Markdown files; {} external links were not fetched.".format(
                         links["checked"], len(markdown), links["external"]), result["url"])
 
-    hits = []
-    for path, body in texts.items():
-        hits.extend(scan_secret_candidates(path, body))
+    match_count = sum(scan_secret_candidates(body) for body in texts.values())
     result["secret_scan"] = {
         "scanned_files": len(texts), "eligible_files": len(eligible),
-        "skipped_files": skipped, "fetch_failures": len(fetch_failures), "hits": hits,
+        "skipped_files": skipped, "fetch_failures": len(fetch_failures),
+        "match_count": match_count,
     }
-    if hits:
+    if match_count:
         add_finding(findings, "CRITICAL", "Potential credential pattern detected",
-                    "{} match(es) detected. Report shows only file paths, line numbers, and detector names; values are never printed.".format(
-                        len(hits)), result["url"])
+                    "{} candidate credential pattern(s) detected. Matched values and match-derived records are not retained or reported.".format(
+                        match_count), result["url"])
     else:
         add_finding(findings, "INFO", "No configured credential patterns matched",
                     "No configured high-confidence patterns matched in fetched text files. This is not proof that no secret exists.",
@@ -871,11 +859,9 @@ def render_report(data):
     lines.extend([
         "", "## Credential pattern scan", "",
         "- Files fetched: {}; eligible text files: {}; possible matches: {}.".format(
-            scan.get("scanned_files", 0), scan.get("eligible_files", 0), len(scan.get("hits", []))),
-        "- Candidate secret values are never printed.",
+            scan.get("scanned_files", 0), scan.get("eligible_files", 0), scan.get("match_count", 0)),
+        "- Candidate secret values and match-derived file/line records are never retained or printed.",
     ])
-    for hit in scan.get("hits", [])[:100]:
-        lines.append("- {}:{} — detector {}".format(hit["path"], hit["line"], hit["detector"]))
     lines.extend([
         "", "## Coverage and limitations", "",
         "- External Markdown links are counted but not followed.",
