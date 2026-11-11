@@ -228,7 +228,7 @@ def is_scannable_text(path, size):
     return (
         size <= MAX_FILE_BYTES
         and (PurePosixPath(path).suffix.lower() in TEXT_SUFFIXES
-             or name in {".gitignore", ".gitattributes"})
+             or name in {".gitignore", ".gitattributes", ".env"} or name.startswith(".env."))
         and name not in SKIP_NAMES
     )
 

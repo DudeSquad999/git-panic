@@ -3,6 +3,7 @@ import unittest
 from scripts.prism_ai_audit import (
     check_markdown_links,
     heading_anchors,
+    is_scannable_text,
     scan_secret_candidates,
 )
 
@@ -62,6 +63,10 @@ class CredentialScanTests(unittest.TestCase):
     def test_placeholder_is_ignored(self):
         candidate = "ghp_" + ("example" * 6)
         self.assertEqual(scan_secret_candidates("README.md", candidate), [])
+
+    def test_dotenv_files_are_included_in_scan(self):
+        self.assertTrue(is_scannable_text(".env", 20))
+        self.assertTrue(is_scannable_text(".env.local", 20))
 
     def test_private_key_marker_is_detected(self):
         hits = scan_secret_candidates("keys.txt", "-----BEGIN PRIVATE KEY-----\n")
