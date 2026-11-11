@@ -1,66 +1,170 @@
-# Contributing
+# Contributing to git-panic
 
-## Setup and checks
+Thank you for helping improve git-panic. We welcome reproducible bug reports,
+clear documentation, focused fixes, and tests.
 
-Use current stable Rust with Cargo, rustfmt, and Clippy, plus Git and native build tools. The manifest declares Rust 1.88 as the minimum. The merged validation notes report successful builds and tests with 1.88.0; 1.87.0 could not resolve the committed lockfile.
+Please follow our [Code of Conduct](CODE_OF_CONDUCT.md).
 
-```sh
+## Before You Start
+
+- Search existing issues and pull requests.
+- Discuss large features or architectural changes before implementing them.
+- Keep each pull request focused on one problem.
+- Never use your real project as a destructive recovery test fixture.
+
+For suspected vulnerabilities, read [SECURITY.md](SECURITY.md).
+Do not publish credentials, sensitive repository data, or exploit details
+in ordinary issues.
+
+## Report a Bug
+
+Include:
+
+- git-panic version or source commit.
+- Operating system, terminal, and installation method.
+- Exact command, with sensitive values redacted.
+- Expected and actual behavior.
+- Minimal reproduction steps using a disposable repository.
+- Relevant output and exit status.
+
+For build failures, include `rustc --version`, `cargo --version`, and the
+first relevant error—not only the final "build failed" message.
+
+Do not upload private repositories or unredacted reflogs.
+
+## Suggest a Feature
+
+Explain:
+
+1. The user problem.
+2. Why the current workflow does not solve it.
+3. Proposed commands or interactions.
+4. Alternatives considered.
+5. Effects on safety, compatibility, or repository writes.
+
+A feature request does not imply a commitment to implement it.
+
+## Development Setup
+
+You need Git, Rust, Cargo, rustfmt, Clippy, and native build tools.
+See the README for platform prerequisites.
+
+Cargo.toml declares Rust 1.88 as the minimum supported version.
+Changes that raise this requirement must update the manifest and
+documentation explicitly.
+
+```bash
+git clone https://github.com/DudeSquad999/git-panic.git
+cd git-panic
+rustup component add rustfmt clippy
+git switch -c fix/short-description
+```
+
+Without repository write access, fork the project and clone your fork.
+
+## Required Checks
+
+```bash
 cargo fmt --all -- --check
-cargo test --locked --all-targets
-cargo clippy --locked --all-targets -- -D warnings
-cargo build --locked --release
+cargo test --all-targets --locked
+cargo clippy --all-targets --locked -- -D warnings
+cargo build --release --locked
 cargo package --locked --list
 ```
 
-Run `cargo fmt --all` if formatting needs correction. `Cargo.lock` is committed; do not hand-edit dependency resolution. CI is configured for Linux, macOS, and Windows. Consult the latest Actions results before claiming a revision passed.
+Use `cargo fmt --all` to fix formatting.
 
-Earlier validation notes report Linux tutorial, packaging, installation, and test checks with rustc 1.99.1. Treat those as historical results, not a guarantee for later commits.
+State which checks passed, failed, or could not be run.
+Never describe unexecuted checks as passing.
 
-## Dependencies
+## Coding Standards
 
- git2 is built without default SSH/HTTPS features because git-panic performs no remote operations. OpenSSL development files are not needed for this configuration. serde_json supports search and recovery JSON output.
+- Follow rustfmt and address Clippy warnings.
+- Prefer cohesive functions and explicit error handling.
+- Add useful context to errors.
+- Avoid introducing panics in runtime paths.
+- Preserve CLI entry points unless a breaking change is intentional.
+- Keep human-readable output separate from machine-readable JSON.
+- Update help text and documentation when behavior changes.
+- Avoid unrelated formatting, renaming, and dependency changes.
 
-The merged 2026-11-10 audit notes report no vulnerabilities and five informational warnings involving `paste`, `git2`, and `lru` via `ratatui`. Rerun `cargo audit` against the current lockfile and advisory database. An audit result is not a security guarantee; do not assume an advisory is irrelevant without analyzing its affected code paths. Dependency upgrades, especially Ratatui API changes, need their own tests.
+## Git Safety Contract
 
-## Architecture and Git safety
+Preserve these properties:
 
-`src/main.rs` contains CLI dispatch, HEAD reflog extraction, literal search, the Ratatui/Crossterm inspector, JSON formatting, and branch creation.
+- Search and preview do not write repository state.
+- Recovery previews by default.
+- Only `--create` authorizes a new branch reference.
+- Existing branches are never overwritten.
+- Recovery does not implicitly check out, reset, clean, stash, or contact remotes.
+- Branch creation leaves HEAD, the index, and working files unchanged.
+- A recovery branch is not a backup of uncommitted edits.
 
-Recovery previews by default. `--create` opts into a new branch reference with force disabled. Preserve this contract:
+Changes to this contract require explicit design discussion and tests.
 
-- Never overwrite an existing branch.
-- Never implicitly check out, reset, clean, stash, or contact remotes.
-- Leave HEAD, the index, and working files unchanged when creating a branch.
-- Do not claim a branch preserves uncommitted edits or interrupted-operation state.
-- Keep search literal and case-insensitive unless an explicitly documented interface change is intended.
+## Tests
 
-Terminal cleanup is best-effort. The release `panic=abort` setting, SIGKILL, and terminal failures can bypass cleanup.
+Use temporary repositories and disposable directories.
 
-## Tests and manual validation
+Cover, where relevant:
 
-Unit tests in `src/main.rs` use disposable libgit2 repositories. Integration tests in `tests/cli.rs` exercise the compiled binary against throwaway repositories created with Git. Never run destructive recovery tests in real worktrees.
+- Empty reflogs and searches with no results.
+- Literal, case-insensitive matching.
+- Invalid or abbreviated commit IDs.
+- Missing and non-commit objects.
+- Invalid or existing branch names.
+- Preview performing no writes.
+- Branch creation preserving HEAD, index, and working files.
+- JSON output and error exit status.
+- Piped output and terminal cleanup.
 
 On a POSIX platform with Python PTY support:
 
-```sh
+```bash
 cargo build --release --locked
 python3 scripts/tui-pty-test.py
 ```
 
-This script exercises navigation, quit and Ctrl-C behavior, alternate-screen cleanup, long histories, and narrow rendering. It is not a Windows-native test. Review the script and results before claiming coverage.
+This test does not substitute for native Windows testing.
 
-Remaining manual scenarios include live resizing, injected terminal errors, interrupted rebases/cherry-picks/reverts, concurrent branch-name creation, bare repositories, linked worktrees, and installation examples on each supported platform. Record exact commands, outcomes, and skipped checks.
+## Dependencies
 
-## Documentation and visuals
+Commit Cargo.lock for this CLI application.
 
-Keep help, README examples, and implemented behavior aligned. The workflow SVG is illustrative. `assets/demo-terminal.svg` is generated by `scripts/render-demo.sh` from a disposable repository; regenerate it rather than editing captured output by hand. Never expose secrets or private history in fixtures, screenshots, or logs.
+Use Cargo to update dependency resolution. Do not hand-edit checksums or
+resolved dependency entries.
 
-Read [SECURITY.md](SECURITY.md) before discussing suspected vulnerabilities. Do not publish exploit details or private data in public issues. Do not promise a reporting channel, response time, or security support window that has not been established.
+Explain each dependency change. Review transitive changes, minimum Rust
+requirements, licenses, and security advisories.
 
-## Compatibility and licensing
+Do not suppress an advisory merely to make a check green.
+Do not carry historical audit results forward as current guarantees.
 
-Default, query, and `tui` entry points remain available. `snapshot --before` is reserved and fails because it is not implemented. `R` is not a restoration action. Recovery requires a full 40-character SHA-1 commit ID, not an abbreviated SHA or moving reflog reference.
+## Documentation and Visuals
 
-Use JSON for scripts; default human-readable output is not a stable parsing interface. Check the tool version when relying on the documented JSON shape.
+Keep examples consistent with implemented behavior.
 
-The project uses the [MIT License](LICENSE), matching `Cargo.toml`. Preserve its copyright and permission notice, and retain applicable third-party license notices. Do not change licensing terms as part of unrelated fixes.
+Distinguish recorded output from illustrative artwork.
+Regenerate the recorded demo using repository scripts.
+
+Remove credentials, private paths, author identities, and sensitive history
+from examples and fixtures.
+
+## Pull Requests
+
+Include:
+
+- The problem and proposed solution.
+- A linked issue, if applicable.
+- Tests and manual checks performed.
+- CLI, JSON, documentation, and compatibility changes.
+- Remaining limitations and skipped validation.
+
+Maintainers may request changes or decline proposals outside project scope.
+
+## License
+
+Contributions are submitted under the project's MIT License unless a
+separate agreement explicitly states otherwise.
+
+Preserve applicable copyright and third-party license notices.
