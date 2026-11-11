@@ -4,6 +4,8 @@ from scripts.prism_ai_audit import (
     check_markdown_links,
     heading_anchors,
     is_scannable_text,
+    redact_sensitive_text,
+    safe_report_url,
     scan_secret_candidates,
 )
 
@@ -67,6 +69,18 @@ class CredentialScanTests(unittest.TestCase):
     def test_dotenv_files_are_included_in_scan(self):
         self.assertTrue(is_scannable_text(".env", 20))
         self.assertTrue(is_scannable_text(".env.local", 20))
+
+    def test_report_redacts_token_and_private_key_values(self):
+        token = "ghp_" + ("B" * 36)
+        private_key = "-----BEGIN PRIVATE KEY-----\nPRIVATE-MATERIAL\n-----END PRIVATE KEY-----"
+        safe = redact_sensitive_text("token=" + token + " " + private_key)
+        self.assertNotIn(token, safe)
+        self.assertNotIn("PRIVATE-MATERIAL", safe)
+        self.assertIn("[REDACTED]", safe)
+
+    def test_report_url_drops_userinfo_query_and_fragment(self):
+        safe = safe_report_url("https://user:password@example.com/path?token=secret#fragment")
+        self.assertEqual(safe, "https://example.com/path")
 
     def test_private_key_marker_is_detected(self):
         hits = scan_secret_candidates("keys.txt", "-----BEGIN PRIVATE KEY-----\n")

@@ -130,8 +130,37 @@ def days_old(value, now):
     return None if parsed is None else max(0, (now - parsed).days)
 
 
+def redact_sensitive_text(value):
+    """Remove credential-like values before untrusted text enters a report."""
+    text = str(value or "")
+    text = re.sub(
+        r"-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----.*?-----END [A-Z0-9 ]*PRIVATE KEY-----",
+        "[REDACTED PRIVATE KEY]", text, flags=re.DOTALL,
+    )
+    for _, pattern in SECRET_PATTERNS:
+        text = pattern.sub("[REDACTED]", text)
+    return text
+
+
 def safe_title(value):
-    return html.escape(re.sub(r"\s+", " ", str(value or "")).strip()[:240], quote=False)
+    text = redact_sensitive_text(value)
+    return html.escape(re.sub(r"\s+", " ", text).strip()[:240], quote=False)
+
+
+def safe_report_url(value):
+    """Keep a useful destination while dropping userinfo, query strings, and fragments."""
+    try:
+        parsed = urllib.parse.urlsplit(str(value or ""))
+        if parsed.scheme not in {"http", "https"} or not parsed.hostname:
+            return ""
+        host = parsed.hostname
+        if ":" in host and not host.startswith("["):
+            host = "[{}]".format(host)
+        if parsed.port:
+            host = "{}:{}".format(host, parsed.port)
+        return urllib.parse.urlunsplit((parsed.scheme, host, parsed.path, "", ""))
+    except (TypeError, ValueError):
+        return ""
 
 
 def heading_anchors(markdown):
@@ -253,7 +282,12 @@ def fetch_text_files(client, paths, branch):
 
 
 def add_finding(findings, severity, title, detail, url=None):
-    findings.append({"severity": severity, "title": title, "detail": detail, "url": url})
+    findings.append({
+        "severity": severity,
+        "title": redact_sensitive_text(title),
+        "detail": redact_sensitive_text(detail),
+        "url": safe_report_url(url) if url else None,
+    })
 
 
 def audit(owner, repo_name):
@@ -275,7 +309,7 @@ def audit(owner, repo_name):
         branches, _ = client.collection(client.repo_path + "/branches")
         result["branches"] = branches
     except AuditError as exc:
-        coverage.append("Branch listing unavailable: {}".format(exc))
+        coverage.append("Branch listing unavailable: {}".format(redact_sensitive_text(exc)))
     default_info = next((b for b in branches if b.get("name") == default_branch), None)
     if default_info is None:
         add_finding(findings, "MEDIUM", "Default branch protection unavailable",
@@ -304,14 +338,14 @@ def audit(owner, repo_name):
         result["workflows"] = workflows
     except AuditError as exc:
         result["workflows"] = []
-        coverage.append("Workflow inventory unavailable: {}".format(exc))
+        coverage.append("Workflow inventory unavailable: {}".format(redact_sensitive_text(exc)))
     try:
         runs = client.json(client.repo_path + "/actions/runs?per_page=50").get("workflow_runs", [])
         result["workflow_runs"] = runs
     except AuditError as exc:
         runs = []
         result["workflow_runs"] = []
-        coverage.append("Actions run history unavailable: {}".format(exc))
+        coverage.append("Actions run history unavailable: {}".format(redact_sensitive_text(exc)))
     if not runs:
         add_finding(findings, "LOW", "No workflow runs returned",
                     "Actions run history was empty or unavailable; CI health could not be confirmed.",
@@ -341,7 +375,7 @@ def audit(owner, repo_name):
     except AuditError as exc:
         releases = []
         result["releases"] = []
-        coverage.append("Release history unavailable: {}".format(exc))
+        coverage.append("Release history unavailable: {}".format(redact_sensitive_text(exc)))
     if not releases:
         add_finding(findings, "INFO", "No published releases returned",
                     "The repository has no published releases in the returned API data.",
@@ -363,14 +397,14 @@ def audit(owner, repo_name):
     except AuditError as exc:
         issues = []
         result["open_issues"] = []
-        coverage.append("Open issue listing unavailable: {}".format(exc))
+        coverage.append("Open issue listing unavailable: {}".format(redact_sensitive_text(exc)))
     try:
         pulls, pulls_capped = client.collection(client.repo_path + "/pulls?state=open")
         result["open_pulls"], result["pulls_capped"] = pulls, pulls_capped
     except AuditError as exc:
         pulls = []
         result["open_pulls"] = []
-        coverage.append("Open pull-request listing unavailable: {}".format(exc))
+        coverage.append("Open pull-request listing unavailable: {}".format(redact_sensitive_text(exc)))
     for kind, items in (("issue", issues), ("pull request", pulls)):
         old = [i for i in items if (days_old(i.get("updated_at"), checked_at) or 0) >= 30]
         if old:
@@ -518,7 +552,7 @@ def render_report(data):
         "- Visibility: {}".format(repo.get("visibility") or ("private" if repo.get("private") else "public")),
         "- License: {}".format((repo.get("license") or {}).get("spdx_id") or "not reported"),
         "- Stars / forks: {} / {}".format(repo.get("stargazers_count", 0), repo.get("forks_count", 0)),
-        "- Topics: {}".format(", ".join(repo.get("topics") or []) or "none"),
+        "- Topics: {}".format(", ".join(safe_title(topic) for topic in (repo.get("topics") or [])) or "none"),
         "- Tracked files: {}".format(data.get("tree_file_count", "unknown")),
         "- Workflow files: {}".format(len(data.get("workflow_file_paths", []))),
         "- GitHub workflows listed: {}".format(len(data.get("workflows", []))),
@@ -535,7 +569,7 @@ def render_report(data):
         lines.append("- [{} / {}]({}) — {} — {}".format(
             safe_title(run.get("name") or "workflow"),
             run.get("run_number", "?"),
-            run.get("html_url") or data["url"] + "/actions",
+            safe_report_url(run.get("html_url")) or data["url"] + "/actions",
             run.get("conclusion") or run.get("status") or "unknown",
             safe_title(run.get("display_title") or run.get("name")),
         ))
@@ -550,7 +584,7 @@ def render_report(data):
         for item in items[:20]:
             lines.append("- [#{}: {}]({}) — updated {}".format(
                 item.get("number"), safe_title(item.get("title")),
-                item.get("html_url") or data["url"] + "/" + route,
+                safe_report_url(item.get("html_url")) or data["url"] + "/" + route,
                 (item.get("updated_at") or "unknown")[:10],
             ))
     links = data.get("link_results", {})
@@ -560,8 +594,8 @@ def render_report(data):
             links.get("checked", 0), links.get("external", 0), len(links.get("broken", []))),
     ])
     for item in links.get("broken", [])[:100]:
-        lines.append("- {}:{} -> {} ({})".format(
-            item["source"], item["line"], item["target"], item["problem"]))
+        lines.append("- {}:{} — broken relative link ({})".format(
+            safe_title(item["source"]), item["line"], safe_title(item["problem"])))
     scan = data.get("secret_scan", {})
     lines.extend([
         "", "## Credential pattern scan", "",
@@ -579,7 +613,7 @@ def render_report(data):
         "- Release binaries are not downloaded or independently re-hashed.",
         "- Runtime application behavior, private alerts, account-level settings, and actual response performance are not verified.",
     ])
-    lines.extend("- {}".format(note) for note in data.get("coverage", []))
+    lines.extend("- {}".format(safe_title(note)) for note in data.get("coverage", []))
     lines.extend([
         "", "## Audit scope", "",
         "The workflow reads public GitHub metadata and file contents for DudeSquad999/Prism-Ai. It writes only an Actions summary and report artifact in git-panic.", "",
@@ -596,7 +630,7 @@ def main(argv=None):
     try:
         data = audit(args.owner, args.repo)
     except AuditError as exc:
-        print("Audit failed: {}".format(exc), file=sys.stderr)
+        print("Audit failed: {}".format(redact_sensitive_text(exc)), file=sys.stderr)
         return 2
     report = render_report(data)
     if args.output:
