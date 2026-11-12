@@ -1,7 +1,3 @@
-# git-panic
-
-![git-panic logo](assets/logo.svg)
-
 ![git-panic: The CLI Emergency Room. Illustrative banner, not a screenshot.](assets/banner.svg)
 
 Find the commit. Preserve it. Decide what happens next.
