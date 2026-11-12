@@ -1,5 +1,9 @@
 # git-panic
 
+![git-panic logo](assets/logo.svg)
+
+![git-panic: The CLI Emergency Room. Illustrative banner, not a screenshot.](assets/banner.svg)
+
 Find the commit. Preserve it. Decide what happens next.
 
 A local Git recovery CLI for browsing reflogs and preserving available commits
@@ -12,6 +16,7 @@ on new branches—without switching branches or changing your working files.
 [Quick start](#quick-start) ·
 [Installation](#installation) ·
 [Commands](#commands) ·
+[Architecture](#architecture) ·
 [User guide](docs/guide.md) ·
 [Contributing](CONTRIBUTING.md)
 
@@ -42,6 +47,8 @@ branches or change HEAD, the index, or working files.
 - 🧾 JSON output — Use search and recovery in scripts.
 - 🔒 Local operations — No application API keys or remote Git operations.
 - 🛡️ Narrow write boundary — Existing branches are never overwritten.
+
+![Recovery contract: search and preview are read-only; explicit creation adds a new branch without changing HEAD, the index, or working files. Not a backup of uncommitted work.](assets/readme/recovery-contract.svg)
 
 ## Demo
 
@@ -184,6 +191,10 @@ decision.
 Start with the [disposable practice exercise](docs/guide.md#practice-without-risking-your-project)
 before using a recovery workflow on important work.
 
+![Illustrative workflow: inspect, preview, and explicitly create a recovery branch.](assets/readme/workflow.svg)
+
+This diagram is a command guide, not captured output.
+
 ## Commands
 
 | Command | Purpose |
@@ -269,6 +280,13 @@ See the [user guide](docs/guide.md) for examples and limitations.
 
 An empty reflog cannot be fixed by changing the search query.
 
+## Architecture
+
+![git-panic architecture: CLI dispatch routes to timeline inspection, literal search, or recovery. Discovery reads the local HEAD reflog. Recovery previews before explicit branch creation; search and recovery support JSON output.](assets/readme/architecture.svg)
+
+The architecture diagram illustrates the inspection, search, and recovery
+workflow. Recovery previews before explicit branch creation.
+
 ## Development
 
 ```bash
@@ -294,6 +312,8 @@ For suspected vulnerabilities, consult [SECURITY.md](SECURITY.md) before
 posting details publicly.
 
 ## Related Project
+
+[![Prism AI: research and writing workspace with the original purple prism and colored rays logo.](assets/readme/prism-project.svg)](https://github.com/DudeSquad999/Prism-Ai)
 
 [Prism AI](https://github.com/DudeSquad999/Prism-Ai) is the creator's separate
 research and writing project. It is not required to use git-panic.
