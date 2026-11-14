@@ -1,43 +1,84 @@
----
 name: Bug report
-about: git-panic behaved incorrectly, crashed, or gave a misleading result
-title: ''
-labels: bug
+description: Report unexpected behavior or a build failure.
+title: "[Bug]: "
 body:
-  - type: textarea
-    id: what-happened
+  - type: markdown
     attributes:
-      label: What happened?
-      description: What you ran, what you expected, and what you saw instead. Use a disposable practice repository for anything risky; do not paste secrets, private paths, or private history.
-      placeholder: |
-        Command: git-panic recover <SHA> --branch panic/x
-        Expected: ...
-        Actual: ...
-    validations:
-      required: true
-  - type: textarea
-    id: reproduction
+      value: |
+        Do not post credentials, private repository content, or unredacted
+        reflogs. For suspected vulnerabilities, read SECURITY.md first.
+
+  - type: checkboxes
+    id: checks
     attributes:
-      label: How can it be reproduced?
-      description: The exact steps, from a fresh `git init` if possible. Never test destructive Git operations in a real project.
-      placeholder: |
-        mkdir demo && cd demo && git init ...
+      label: Before submitting
+      options:
+        - label: I searched existing issues for this problem.
+          required: true
+        - label: I removed sensitive information from this report.
+          required: true
+
   - type: input
     id: version
     attributes:
-      label: git-panic version
-      description: Output of `git-panic --version`.
-      placeholder: git-panic 0.1.0
-  - type: input
+      label: git-panic version or commit
+      description: Use git-panic --version or provide the source commit.
+      placeholder: "git-panic 0.1.0 / commit SHA"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Linux
+        - macOS
+        - Windows
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
     id: environment
     attributes:
-      label: Environment
-      description: Operating system, terminal, and Rust version if built from source.
-      placeholder: Ubuntu 24.04, GNOME Terminal, rustc 1.99
-  - type: checkboxes
-    id: safety
+      label: Environment and installation
+      description: |
+        Include OS version, terminal, installation method, and git --version.
+        For build failures, include rustc --version and cargo --version.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
     attributes:
-      label: Reporting checklist
-      options:
-        - label: This report contains no secrets, credentials, or private repository data.
-          required: true
+      label: Steps to reproduce
+      description: Use a disposable repository, never a destructive test in real work.
+      placeholder: |
+        1. Create a disposable repository.
+        2. Run ...
+        3. Observe ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Include the exit status if available.
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant command and output
+      description: Include the first relevant error and redact sensitive data.
+      render: text

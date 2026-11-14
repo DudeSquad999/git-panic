@@ -1,1 +1,28 @@
+# Rust build artifacts
 /target/
+
+# Rustfmt backup files
+**/*.rs.bk
+
+# Python helpers
+__pycache__/
+*.py[cod]
+
+# Local environment files; retain a shareable example if added
+.env
+.env.*
+!.env.example
+
+# Editor temporary files
+*.swp
+*.swo
+*~
+
+# Operating-system metadata
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Local tool outputs, if used
+/coverage/
+/dist/
