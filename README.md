@@ -3,17 +3,17 @@
 Find the commit. Preserve it. Decide what happens next.
 
 A local Git recovery CLI for browsing reflogs and preserving available commits
-on new branchesâwithout switching branches or changing your working files.
+on new branches—without switching branches or changing your working files.
 
 [![Build](https://github.com/DudeSquad999/git-panic/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/DudeSquad999/git-panic/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Package version: 0.1.0](https://img.shields.io/badge/package_version-0.1.0-informational.svg)](Cargo.toml)
 
-[Quick start](#quick-start) Â·
-[Installation](#installation) Â·
-[Commands](#commands) Â·
-[Architecture](#architecture) Â·
-[User guide](docs/guide.md) Â·
+[Quick start](#quick-start) ·
+[Installation](#installation) ·
+[Commands](#commands) ·
+[Architecture](#architecture) ·
+[User guide](docs/guide.md) ·
 [Contributing](CONTRIBUTING.md) · [Code of Conduct](CODE_OF_CONDUCT.md)
 
 > Early-stage software. git-panic preserves available commits; it cannot recover
@@ -36,13 +36,13 @@ branches or change HEAD, the index, or working files.
 
 ## Features
 
-- ð Literal search â Find reflog messages using case-insensitive text.
-- ð¥ï¸ Read-only timeline â Browse entries in an interactive terminal.
-- ð Preview first â Validate the commit and branch name before writing.
-- ð¿ Explicit preservation â Create a new branch only with `--create`.
-- ð§¾ JSON output â Use search and recovery in scripts.
-- ð Local operations â No application API keys or remote Git operations.
-- ð¡ï¸ Narrow write boundary â Existing branches are never overwritten.
+- ð Literal search — Find reflog messages using case-insensitive text.
+- ð¥ï¸ Read-only timeline — Browse entries in an interactive terminal.
+- ð Preview first — Validate the commit and branch name before writing.
+- ð¿ Explicit preservation — Create a new branch only with `--create`.
+- ð§¾ JSON output — Use search and recovery in scripts.
+- ð Local operations — No application API keys or remote Git operations.
+- ð¡ï¸ Narrow write boundary — Existing branches are never overwritten.
 
 ![Recovery contract: search and preview are read-only; explicit creation adds a new branch without changing HEAD, the index, or working files. Not a backup of uncommitted work.](assets/readme/recovery-contract.svg)
 
@@ -136,7 +136,7 @@ shown above comes from Cargo.toml; it does not establish a published release.
 
 ## Quick Start
 
-Run git-panic inside the repository you want to inspectânot necessarily the
+Run git-panic inside the repository you want to inspect—not necessarily the
 git-panic source checkout.
 
 Reflogs are local: another clone may not contain the same history.
@@ -152,7 +152,7 @@ git-panic "commit: fix"
 The first command opens the timeline. The other commands search reflog
 messages.
 
-Search is literal and case-insensitiveânot a regular expression or a
+Search is literal and case-insensitive—not a regular expression or a
 natural-language query.
 
 Copy a full 40-character commit SHA from the results. Quit the timeline
