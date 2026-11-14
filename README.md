@@ -120,7 +120,7 @@ Cargo's executable directory must be on PATH:
 | Platform | Directory |
 | --- | --- |
 | Linux / macOS | `~/.cargo/bin` |
-| Windows | `%USERPROFILE%\\.cargo\\bin` |
+| Windows | `%USERPROFILE%\.cargo\bin` |
 
 To build without installing:
 
@@ -129,7 +129,7 @@ cargo build --release --locked
 ```
 
 The executable is `target/release/git-panic`, or
-`target\\release\\git-panic.exe` on Windows.
+`target\release\git-panic.exe` on Windows.
 
 `--locked` uses the committed dependency resolution. The package version
 shown above comes from Cargo.toml; it does not establish a published release.
