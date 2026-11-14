@@ -18,7 +18,7 @@ clap = { version = "4.4", features = ["derive"] }
 # No SSH/HTTPS support is needed: git-panic only reads local repositories
 # and never performs network or remote operations. Disabling git2's default
 # features also removes the openssl-sys/libssh2-sys build requirements.
-git2 = { version = "0.20", default-features = false }
+git2 = { version = "0.21", default-features = false }
 ratatui = { version = "0.30.2", default-features = false, features = ["std", "crossterm_0_29"] }
 crossterm = "0.29"
 anyhow = "1.0"
