@@ -33,9 +33,9 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Check out git-panic
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - name: Run audit unit tests
@@ -49,9 +49,9 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Check out git-panic
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - name: Run read-only Prism AI audit
@@ -59,7 +59,7 @@ jobs:
       - name: Add report to workflow summary
         run: cat prism-ai-audit.md >> "$GITHUB_STEP_SUMMARY"
       - name: Upload audit report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: prism-ai-audit-${{ github.run_number }}
           path: prism-ai-audit.md
