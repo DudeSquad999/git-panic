@@ -131,7 +131,7 @@ fn extract_reflogs(repo: &Repository) -> Result<Vec<ReflogItem>> {
         .enumerate()
         .map(|(index, entry)| ReflogItem {
             oid: entry.id_new(),
-            message: entry.message().unwrap_or("No reflog message").to_string(),
+            message: entry.message().ok().flatten().unwrap_or("No reflog message").to_string(),
             index,
         })
         .collect())
