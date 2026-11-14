@@ -250,7 +250,7 @@ fn run_tui(reflogs: &[ReflogItem]) -> Result<()> {
             let chunks = Layout::default()
                 .direction(Direction::Horizontal)
                 .constraints([Constraint::Percentage(40), Constraint::Percentage(60)])
-                .split(frame.size());
+                .split(frame.area());
             let items: Vec<ListItem> = reflogs.iter().map(|item| {
                 ListItem::new(format!("HEAD@{{{}}} [{}] {}", item.index, &item.oid.to_string()[..7], display_text(&item.message)))
             }).collect();
