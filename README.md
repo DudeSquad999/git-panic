@@ -36,13 +36,13 @@ branches or change HEAD, the index, or working files.
 
 ## Features
 
-- ð Literal search — Find reflog messages using case-insensitive text.
-- ð¥ï¸ Read-only timeline — Browse entries in an interactive terminal.
-- ð Preview first — Validate the commit and branch name before writing.
-- ð¿ Explicit preservation — Create a new branch only with `--create`.
-- ð§¾ JSON output — Use search and recovery in scripts.
-- ð Local operations — No application API keys or remote Git operations.
-- ð¡ï¸ Narrow write boundary — Existing branches are never overwritten.
+- 🔎 Literal search — Find reflog messages using case-insensitive text.
+- 🖥️ Read-only timeline — Browse entries in an interactive terminal.
+- 👀 Preview first — Validate the commit and branch name before writing.
+- 🌿 Explicit preservation — Create a new branch only with `--create`.
+- 🧾 JSON output — Use search and recovery in scripts.
+- 🔒 Local operations — No application API keys or remote Git operations.
+- 🛡️ Narrow write boundary — Existing branches are never overwritten.
 
 ![Recovery contract: search and preview are read-only; explicit creation adds a new branch without changing HEAD, the index, or working files. Not a backup of uncommitted work.](assets/readme/recovery-contract.svg)
 
@@ -120,7 +120,7 @@ Cargo's executable directory must be on PATH:
 | Platform | Directory |
 | --- | --- |
 | Linux / macOS | `~/.cargo/bin` |
-| Windows | `%USERPROFILE%\.cargo\bin` |
+| Windows | `%USERPROFILE%\\.cargo\\bin` |
 
 To build without installing:
 
@@ -129,7 +129,7 @@ cargo build --release --locked
 ```
 
 The executable is `target/release/git-panic`, or
-`target\release\git-panic.exe` on Windows.
+`target\\release\\git-panic.exe` on Windows.
 
 `--locked` uses the committed dependency resolution. The package version
 shown above comes from Cargo.toml; it does not establish a published release.
