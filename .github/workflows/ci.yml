@@ -34,3 +34,18 @@ jobs:
         run: cargo build --release --locked
       - name: Inspect package contents
         run: cargo package --list
+
+  msrv:
+    name: Minimum supported Rust (1.88.0)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install declared minimum Rust
+        run: rustup toolchain install 1.88.0 --profile minimal
+      - name: Test using the declared minimum
+        run: cargo +1.88.0 test --all-targets --locked
+      - name: Build release using the declared minimum
+        run: cargo +1.88.0 build --release --locked
