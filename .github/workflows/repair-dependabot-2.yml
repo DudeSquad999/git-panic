@@ -32,8 +32,8 @@ jobs:
         shell: python
         run: |
           from pathlib import Path
-          manifest_path = Path('Cargo.toml')
-          source_path = Path('src/main.rs')
+          manifest_path = Path("Cargo.toml")
+          source_path = Path("src/main.rs")
           manifest = manifest_path.read_text()
           source = source_path.read_text()
           replacements = {
@@ -44,25 +44,32 @@ jobs:
               if manifest.count(old) == 1:
                   manifest = manifest.replace(old, new)
               elif manifest.count(new) != 1:
-                  raise SystemExit(f'Unexpected manifest content: {old}')
-          if 'frame.size()' not in source and 'frame.area()' not in source:
-              raise SystemExit('Unexpected frame API; inspect manually')
-          source = source.replace('frame.size()', 'frame.area()')
+                  raise SystemExit(f"Unexpected manifest content: {old}")
+          if "frame.size()" in source:
+              source = source.replace("frame.size()", "frame.area()")
+          elif "frame.area()" not in source:
+              raise SystemExit("Unexpected frame API; inspect manually")
           manifest_path.write_text(manifest)
           source_path.write_text(source)
       - name: Regenerate dependency lockfile with Cargo
         run: cargo generate-lockfile
-      - name: Verify lru is removed
+      - name: Verify lru is outside known vulnerable versions
         shell: python
         run: |
           import tomllib
           from pathlib import Path
-          packages = tomllib.loads(Path('Cargo.lock').read_text())['package']
-          remaining = [p['version'] for p in packages if p['name'] == 'lru']
-          if remaining:
-              raise SystemExit(f'lru remains in lockfile: {remaining}')
+          packages = tomllib.loads(Path("Cargo.lock").read_text())["package"]
+          versions = [p["version"] for p in packages if p["name"] == "lru"]
+          if not versions:
+              raise SystemExit("Expected Ratatui to resolve its lru dependency; review dependency graph.")
+          def version_tuple(value):
+              return tuple(int(part) for part in value.split(".")[:3])
+          unsafe = [version for version in versions if version_tuple(version) < (0, 18, 2)]
+          if unsafe:
+              raise SystemExit(f"lru versions below the 0.18.2 security floor remain: {unsafe}")
+          print(f"Verified safe lru versions: {versions}")
       - name: Format
-        run: cargo fmt --all
+        run: cargo fmt --all -- --check
       - name: Tests
         run: cargo test --all-targets --locked
       - name: Clippy
@@ -87,10 +94,10 @@ jobs:
         run: |
           git add -- Cargo.toml Cargo.lock src/main.rs
           if git diff --cached --quiet; then
-            echo 'Repair already applied; no new commit needed.'
+            echo "Repair already committed; no new commit needed."
             exit 0
           fi
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'fix: remove vulnerable lru dependency for Dependabot alert 2'
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "fix: upgrade dependencies beyond vulnerable lru versions"
           git push origin HEAD:refs/heads/fix/dependabot-2-lru
