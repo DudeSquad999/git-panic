@@ -1,0 +1,4 @@
+# Exclude helper/test scripts from Linguist language statistics so Rust is accurately detected
+scripts/** linguist-vendored
+tests/** linguist-vendored
+*.py linguist-detectable=false
