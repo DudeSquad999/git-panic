@@ -415,7 +415,7 @@ mod tests {
     #[test]
     fn search_is_literal_and_case_insensitive() {
         let items = vec![ReflogItem {
-            oid: Oid::zero(),
+            oid: Oid::ZERO_SHA1,
             index: 0,
             message: "reset: moving to HEAD~1".into(),
         }];
@@ -426,7 +426,7 @@ mod tests {
     #[test]
     fn broken_pipe_search_exits_quietly() {
         let items = vec![ReflogItem {
-            oid: Oid::zero(),
+            oid: Oid::ZERO_SHA1,
             index: 0,
             message: "reset".into(),
         }];
@@ -541,7 +541,7 @@ mod tests {
         }
         assert!(recover(
             fixture.repo(),
-            &Oid::zero().to_string(),
+            &Oid::ZERO_SHA1.to_string(),
             "panic/test",
             true,
             false
@@ -608,12 +608,12 @@ mod tests {
     fn json_search_payload_is_valid_and_complete() {
         let matches = vec![
             ReflogItem {
-                oid: Oid::zero(),
+                oid: Oid::ZERO_SHA1,
                 index: 0,
                 message: "reset: moving to HEAD~1".into(),
             },
             ReflogItem {
-                oid: Oid::zero(),
+                oid: Oid::ZERO_SHA1,
                 index: 1,
                 message: "commit: fix \u{1b}[31mred".into(),
             },
