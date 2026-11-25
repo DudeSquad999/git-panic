@@ -1,7 +1,7 @@
 # Prism AI weekly audit
 
 This workflow adds a scheduled, read-only audit of the public repository
-DudeSquad999/Prism-Ai. It is hosted in git-panic so the Prism AI repository is
+akahn30/Prism-Ai. It is hosted in git-panic so the Prism AI repository is
 not modified.
 
 ## Schedule and manual runs
