@@ -6,7 +6,7 @@
 
 A read-only-first Git recovery CLI. Search the local HEAD reflog, inspect an available commit, preview a new branch, and create that branch only when you explicitly pass \`--create\`. It does not check out the recovered commit, reset your repository, change the index or working files, or contact a remote.
 
-[![Build](https://github.com/DudeSquad999/git-panic/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/DudeSquad999/git-panic/actions/workflows/ci.yml)
+[![Build](https://github.com/akahn30/git-panic/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/akahn30/git-panic/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Package version: 0.1.0](https://img.shields.io/badge/package_version-0.1.0-informational.svg)](Cargo.toml)
 
@@ -114,7 +114,7 @@ Use PowerShell for the installation commands below.
 ### Build and install from source
 
 \`\`\`bash
-git clone https://github.com/DudeSquad999/git-panic.git
+git clone https://github.com/akahn30/git-panic.git
 cd git-panic
 cargo install --path . --locked
 git-panic --version
@@ -288,9 +288,9 @@ For suspected vulnerabilities, consult [SECURITY.md](SECURITY.md) before posting
 
 ## Related Project
 
-[![Prism AI: research and writing workspace with the original purple prism and colored rays logo.](assets/readme/prism-project.svg)](https://github.com/DudeSquad999/Prism-Ai)
+[![Prism AI: research and writing workspace with the original purple prism and colored rays logo.](assets/readme/prism-project.svg)](https://github.com/akahn30/Prism-Ai)
 
-[Prism AI](https://github.com/DudeSquad999/Prism-Ai) is the creator's separate research and writing project. It is not required to use git-panic.
+[Prism AI](https://github.com/akahn30/Prism-Ai) is the creator's separate research and writing project. It is not required to use git-panic.
 
 ## License
 
