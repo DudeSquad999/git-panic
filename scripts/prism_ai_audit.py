@@ -879,14 +879,14 @@ def render_report(data):
     lines.extend("- {}".format(safe_title(note)) for note in data.get("coverage", []))
     lines.extend([
         "", "## Audit scope", "",
-        "The workflow reads public GitHub metadata and file contents for akahn30/Prism-Ai. It writes only an Actions summary and report artifact in git-panic.", "",
+        "The workflow reads public GitHub metadata and file contents for prismai-labs/Prism-Ai. It writes only an Actions summary and report artifact in prism-git-panic.", "",
     ])
     return "\n".join(lines)
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--owner", default="akahn30")
+    parser.add_argument("--owner", default="prismai-labs")
     parser.add_argument("--repo", default="Prism-Ai")
     parser.add_argument("--output", help="Write the Markdown report to this path.")
     args = parser.parse_args(argv)

@@ -54,7 +54,7 @@ Changes that raise this requirement must update the manifest and
 documentation explicitly.
 
 ```bash
-git clone https://github.com/DudeSquad999/git-panic.git
+git clone https://github.com/prismai-labs/prism-git-panic.git
 cd git-panic
 rustup component add rustfmt clippy
 git switch -c fix/short-description

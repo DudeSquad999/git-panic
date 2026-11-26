@@ -36,7 +36,7 @@ It also applies when someone explicitly represents the project in public.
 
 ## Reporting
 
-Report concerns to the repository owner, DudeSquad999.
+Report concerns privately to the Prism Git Panic maintainers through GitHub.
 
 For private reports, use a private contact method explicitly published by
 the maintainer. If none is available, request a private contact method

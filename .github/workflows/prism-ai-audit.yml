@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Check out git-panic
+      - name: Check out prism-git-panic
         uses: actions/checkout@v7
       - name: Set up Python
         uses: actions/setup-python@v7
