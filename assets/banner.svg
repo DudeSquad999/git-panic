@@ -1,39 +1,37 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" width="1280" height="640" role="img" aria-labelledby="title desc">
-  <title id="title">git-panic: The CLI Emergency Room</title>
-  <desc id="desc">Original dark-grid banner with a red-orange title and retro terminal window. Illustrative guide: inspect HEAD reflogs, preview a commit, then explicitly create a branch. Not application output.</desc>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="560" viewBox="0 0 1440 560" role="img" aria-labelledby="title desc">
+  <title id="title">Prism Git Panic — local Git recovery</title>
+  <desc id="desc">A Prism-branded developer tool banner showing the faceted prism mark, git-panic name, and an illustrative recovery workflow on a terminal card.</desc>
   <defs>
-    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0d1117"/>
-      <stop offset="100%" stop-color="#161b22"/>
-    </linearGradient>
-    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#f85149"/>
-      <stop offset="100%" stop-color="#ffa657"/>
-    </linearGradient>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#080D1A"/><stop offset=".55" stop-color="#0A1020"/><stop offset="1" stop-color="#111A35"/></linearGradient>
+    <linearGradient id="top" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9B5CFF"/><stop offset=".55" stop-color="#5A45F5"/><stop offset="1" stop-color="#176BFF"/></linearGradient>
+    <linearGradient id="left" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5425D8"/><stop offset=".65" stop-color="#2149D8"/><stop offset="1" stop-color="#13B8D4"/></linearGradient>
+    <linearGradient id="right" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#176BFF"/><stop offset=".55" stop-color="#3551ED"/><stop offset="1" stop-color="#943DFF"/></linearGradient>
+    <linearGradient id="base" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#16CED0"/><stop offset=".48" stop-color="#3453EF"/><stop offset="1" stop-color="#8B3DFA"/></linearGradient>
+    <linearGradient id="glow" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#9B5CFF" stop-opacity=".22"/><stop offset="1" stop-color="#13B8D4" stop-opacity="0"/></linearGradient>
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse"><path d="M48 0H0V48" fill="none" stroke="#26345A" stroke-width="1" opacity=".45"/></pattern>
   </defs>
-  <rect width="1280" height="640" fill="url(#bg)"/>
-  <path d="M0 128 H1280 M0 256 H1280 M0 384 H1280 M0 512 H1280" stroke="#21262d" stroke-width="2"/>
-  <path d="M256 0 V640 M512 0 V640 M768 0 V640 M1024 0 V640" stroke="#21262d" stroke-width="2"/>
-  <g transform="translate(680, 100)">
-    <rect width="520" height="440" rx="12" fill="#0d1117" stroke="#30363d" stroke-width="2"/>
-    <rect width="520" height="40" rx="12" fill="#161b22"/>
-    <circle cx="30" cy="20" r="6" fill="#ff5f56"/>
-    <circle cx="50" cy="20" r="6" fill="#ffbd2e"/>
-    <circle cx="70" cy="20" r="6" fill="#27c93f"/>
-    <text x="260" y="25" fill="#c9d1d9" font-family="monospace" font-size="14" text-anchor="middle">Illustrative command guide</text>
-    <text x="30" y="80" fill="#58a6ff" font-family="monospace" font-size="18">$ git-panic tui</text>
-    <text x="30" y="115" fill="#c9d1d9" font-family="monospace" font-size="16">Inspect the local HEAD reflog.</text>
-    <text x="30" y="145" fill="#c9d1d9" font-family="monospace" font-size="16">Copy a full SHA; press q to quit.</text>
-    <text x="30" y="195" fill="#58a6ff" font-family="monospace" font-size="16">$ git-panic recover &lt;SHA&gt; \</text>
-    <text x="30" y="222" fill="#58a6ff" font-family="monospace" font-size="16">    --branch panic/recovered</text>
-    <text x="30" y="260" fill="#7ee787" font-family="monospace" font-size="16">Preview only. No branch is created.</text>
-    <text x="30" y="300" fill="#ffa657" font-family="monospace" font-size="16">Add --create after reviewing.</text>
-    <text x="30" y="340" fill="#c9d1d9" font-family="monospace" font-size="15">No checkout. No reset. No file backup.</text>
-    <text x="30" y="392" fill="#c9d1d9" font-family="monospace" font-size="13">Illustration, not application output.</text>
+  <rect width="1440" height="560" fill="url(#bg)"/>
+  <rect width="1440" height="560" fill="url(#grid)" opacity=".8"/>
+  <ellipse cx="320" cy="280" rx="360" ry="270" fill="url(#glow)"/>
+  <g transform="translate(82 102) scale(.66)">
+    <path d="M256 28 466 150 354 208 256 151 158 208 46 150Z" fill="url(#top)"/>
+    <path d="M46 150 158 208 158 330 256 387 256 484 46 362Z" fill="url(#left)"/>
+    <path d="M466 150 354 208 354 330 256 387 256 484 466 362Z" fill="url(#right)"/>
+    <path d="M158 330 256 387 354 330 466 362 256 484 46 362Z" fill="url(#base)" opacity=".94"/>
+    <path d="M256 151 354 208 256 265 158 208Z" fill="#0A1020"/>
   </g>
-  <text x="100" y="240" fill="url(#accent)" font-family="system-ui, sans-serif" font-size="64" font-weight="900">git-panic</text>
-  <text x="100" y="310" fill="#e6edf3" font-family="system-ui, sans-serif" font-size="28" font-weight="600">The CLI Emergency Room</text>
-  <text x="100" y="355" fill="#c9d1d9" font-family="system-ui, sans-serif" font-size="18">Inspect local history. Preserve a commit.</text>
-  <rect x="100" y="410" width="180" height="36" rx="6" fill="#21262d" stroke="#30363d" stroke-width="1"/>
-  <text x="190" y="433" fill="#c9d1d9" font-family="monospace" font-size="13" font-weight="bold" text-anchor="middle">Prism-AI Origin</text>
+  <text x="88" y="430" fill="#9B5CFF" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="18" font-weight="700" letter-spacing="5">PRISM LABS  /  DEVELOPER TOOLS</text>
+  <text x="500" y="188" fill="#F6F8FF" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="80" font-weight="800" letter-spacing="-2">git-panic</text>
+  <text x="504" y="238" fill="#B6C2E2" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="28" font-weight="600">Local Git recovery. One deliberate branch at a time.</text>
+  <text x="504" y="286" fill="#9B5CFF" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="22" font-weight="700">Find the commit. Preserve it. Decide what happens next.</text>
+  <g transform="translate(500 330)">
+    <rect width="858" height="166" rx="20" fill="#0A1020" stroke="#303C5B" stroke-width="2"/>
+    <path d="M0 44H858" stroke="#303C5B"/>
+    <circle cx="28" cy="22" r="6" fill="#9B5CFF"/><circle cx="50" cy="22" r="6" fill="#176BFF"/><circle cx="72" cy="22" r="6" fill="#13B8D4"/>
+    <text x="108" y="28" fill="#B6C2E2" font-family="ui-monospace,SFMono-Regular,Consolas,monospace" font-size="14" letter-spacing="2">ILLUSTRATIVE CLI FLOW  •  NOT A SCREENSHOT</text>
+    <text x="30" y="80" fill="#9B5CFF" font-family="ui-monospace,SFMono-Regular,Consolas,monospace" font-size="20">$ git-panic recover &lt;SHA&gt; --branch recovery/saved</text>
+    <text x="30" y="112" fill="#F6F8FF" font-family="ui-monospace,SFMono-Regular,Consolas,monospace" font-size="18">Preview only. Nothing written.</text>
+    <text x="30" y="142" fill="#13B8D4" font-family="ui-monospace,SFMono-Regular,Consolas,monospace" font-size="18">Add --create only after reviewing the preview.</text>
+  </g>
 </svg>

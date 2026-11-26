@@ -1,18 +1,19 @@
-# Prism AI weekly audit
+# Prism AI weekly repository audit
 
 This workflow adds a scheduled, read-only audit of the public repository
-akahn30/Prism-Ai. It is hosted in git-panic so the Prism AI repository is
-not modified.
+[`prismai-labs/Prism-Ai`](https://github.com/prismai-labs/Prism-Ai). It is hosted in
+[`prism-git-panic`](https://github.com/prismai-labs/prism-git-panic), so the Prism AI
+product repository is not modified by this audit.
 
 ## Schedule and manual runs
 
 The workflow runs every Tuesday at 14:00 UTC. This corresponds to 09:00 Eastern
 Standard Time and 10:00 Eastern Daylight Time. It can also be started manually
-from the Actions tab with workflow_dispatch.
+from the Actions tab with `workflow_dispatch`.
 
 The first scheduled run occurs only after this workflow is merged into the
-default branch of git-panic. Pull requests and pushes to main run unit tests
-and Python syntax checks, not the scheduled audit.
+default branch of `prism-git-panic`. Pull requests and pushes to `main` run unit
+tests and Python syntax checks, not the scheduled audit.
 
 ## What it checks
 
@@ -35,18 +36,18 @@ numbers, and detector names.
 
 ## Permissions and write boundaries
 
-The workflow declares only contents:read permission for its own repository.
+The workflow declares only `contents: read` permission for its own repository.
 It queries the public Prism AI repository through unauthenticated HTTPS GET and
 HEAD requests. It does not use a Prism AI token, read repository secrets, or
 write issues, comments, branches, commits, releases, settings, or files in
-Prism-Ai.
+`Prism-Ai`.
 
-The only generated output is a Markdown audit report in the git-panic Actions
-summary and a 90-day Actions artifact. The workflow does not repair findings.
+The only generated output is a Markdown audit report in the `prism-git-panic`
+Actions summary and a 90-day Actions artifact. The workflow does not repair findings.
 
 ## Running locally
 
-From the git-panic repository root, run:
+From the `prism-git-panic` repository root, run:
 
     python scripts/prism_ai_audit.py
 

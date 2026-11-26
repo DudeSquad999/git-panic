@@ -1,12 +1,23 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <rect width="512" height="512" rx="100" fill="#0d1117"/>
-  <rect x="56" y="56" width="400" height="400" rx="40" fill="#161b22" stroke="#30363d" stroke-width="8"/>
-  <circle cx="96" cy="96" r="10" fill="#ff5f56"/>
-  <circle cx="126" cy="96" r="10" fill="#ffbd2e"/>
-  <circle cx="156" cy="96" r="10" fill="#27c93f"/>
-  <text x="210" y="102" fill="#8b949e" font-family="monospace" font-size="16" font-weight="bold">git-panic -- tui</text>
-  <path d="M256 160 L376 340 H136 Z" fill="none" stroke="#f85149" stroke-width="16" stroke-linejoin="round"/>
-  <path d="M256 210 V270" stroke="#f85149" stroke-width="16" stroke-linecap="round"/>
-  <circle cx="256" cy="305" r="10" fill="#f85149"/>
-  <text x="256" y="405" fill="#e6edf3" font-family="monospace" font-size="24" font-weight="bold" text-anchor="middle">$ git panic</text>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Prism Git Panic mark</title>
+  <desc id="desc">A faceted Prism symbol with a small Git recovery branch at its center, on a deep navy background.</desc>
+  <defs>
+    <linearGradient id="top" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9B5CFF"/><stop offset=".55" stop-color="#5A45F5"/><stop offset="1" stop-color="#176BFF"/></linearGradient>
+    <linearGradient id="left" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5425D8"/><stop offset=".65" stop-color="#2149D8"/><stop offset="1" stop-color="#13B8D4"/></linearGradient>
+    <linearGradient id="right" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#176BFF"/><stop offset=".55" stop-color="#3551ED"/><stop offset="1" stop-color="#943DFF"/></linearGradient>
+    <linearGradient id="base" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#16CED0"/><stop offset=".48" stop-color="#3453EF"/><stop offset="1" stop-color="#8B3DFA"/></linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="92" fill="#0A1020"/>
+  <rect x="22" y="22" width="468" height="468" rx="76" fill="#111A35" stroke="#303C5B" stroke-width="2"/>
+  <path d="M256 46 456 158 352 214 256 158 160 214 56 158Z" fill="url(#top)"/>
+  <path d="M56 158 160 214 160 334 256 390 256 466 56 354Z" fill="url(#left)"/>
+  <path d="M456 158 352 214 352 334 256 390 256 466 456 354Z" fill="url(#right)"/>
+  <path d="M160 334 256 390 352 334 456 354 256 466 56 354Z" fill="url(#base)" opacity=".96"/>
+  <path d="M160 214 256 158 352 214 256 272Z" fill="#0A1020" opacity=".92"/>
+  <path d="M256 220V290C256 316 236 332 210 332H190" fill="none" stroke="#F6F8FF" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M256 290C256 316 276 332 302 332H322" fill="none" stroke="#F6F8FF" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="256" cy="216" r="14" fill="#F6F8FF"/>
+  <circle cx="184" cy="332" r="14" fill="#13B8D4" stroke="#F6F8FF" stroke-width="7"/>
+  <circle cx="328" cy="332" r="14" fill="#9B5CFF" stroke="#F6F8FF" stroke-width="7"/>
 </svg>
